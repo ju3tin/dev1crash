@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar';
 
 export default function AdminPage() {
   const program = useProgram();
-  const { publicKey: wallet } = useWallet(); // Correct way
+  const { publicKey: wallet } = useWallet();
   const [isAdmin, setIsAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState('');
   const [status, setStatus] = useState('');
@@ -20,6 +20,8 @@ export default function AdminPage() {
   }, [program, wallet]);
 
   const checkAdmin = async () => {
+    if (!program) return; // ← ADD THIS
+
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     try {
       const config = await program.account.gameConfig.fetch(configPda);
@@ -32,6 +34,7 @@ export default function AdminPage() {
 
   const executeRound = async () => {
     if (!program || !isAdmin || !wallet) return;
+
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from('vault')], program.programId);
     const [roundPda] = PublicKey.findProgramAddressSync([Buffer.from('round')], program.programId);
@@ -59,6 +62,7 @@ export default function AdminPage() {
 
   const changeAdmin = async () => {
     if (!program || !isAdmin || !newAdmin || !wallet) return;
+
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     try {
       await program.methods.adminChangeWallet(new PublicKey(newAdmin))
@@ -72,6 +76,7 @@ export default function AdminPage() {
 
   const loadLastRound = async () => {
     if (!program) return;
+
     const [roundPda] = PublicKey.findProgramAddressSync([Buffer.from('round')], program.programId);
     try {
       const data = await program.account.round.fetch(roundPda);
