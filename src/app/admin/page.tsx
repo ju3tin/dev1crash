@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar';
 
 export default function AdminPage() {
   const program = useProgram();
-  const { publicKey: wallet } = useWallet();
+  const { publicKey: wallet } = useWallet(); // wallet can be null
   const [isAdmin, setIsAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState('');
   const [status, setStatus] = useState('');
@@ -20,11 +20,11 @@ export default function AdminPage() {
   }, [program, wallet]);
 
   const checkAdmin = async () => {
-    if (!program) return;
+    if (!program || !wallet) return; // Double-check
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     try {
       const config = await program.account.gameConfig.fetch(configPda);
-      setIsAdmin(config.admin.toBase58() === wallet.toBase58());
+      setIsAdmin(config.admin.toBase58() === wallet.toBase58()); // wallet is not null here
       loadLastRound();
     } catch (e) {
       console.log('Config not initialized');
@@ -83,19 +83,25 @@ export default function AdminPage() {
     }
   };
 
-  if (!wallet) return (
-    <>
-      <Navbar />
-      <div className="pt-24 text-center">Connect wallet</div>
-    </>
-  );
+  // EARLY RETURN IF NO WALLET
+  if (!wallet) {
+    return (
+      <>
+        <Navbar />
+        <div className="pt-24 text-center">Connect wallet</div>
+      </>
+    );
+  }
 
-  if (!isAdmin) return (
-    <>
-      <Navbar />
-      <div className="pt-24 text-center text-red-400">Unauthorized: Admin only</div>
-    </>
-  );
+  // EARLY RETURN IF NOT ADMIN
+  if (!isAdmin) {
+    return (
+      <>
+        <Navbar />
+        <div className="pt-24 text-center text-red-400">Unauthorized: Admin only</div>
+      </>
+    );
+  }
 
   return (
     <>
