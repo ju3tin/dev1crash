@@ -3,28 +3,29 @@
 import { useState, useEffect } from 'react';
 import { useProgram } from '@/lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, SystemProgram } from '@solana/web3.js';
+import { PublicKey, SystemProgram, SYSVAR_CLOCK_PUBKEY } from '@solana/web3.js';
 import Navbar from '@/components/Navbar';
 
 export default function AdminPage() {
   const program = useProgram();
-  const { publicKey: wallet } = useWallet(); // wallet can be null
+  const { publicKey: wallet, connected } = useWallet();
   const [isAdmin, setIsAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState('');
   const [status, setStatus] = useState('');
   const [lastRound, setLastRound] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!program || !wallet) return;
+    if (!program || !wallet || !connected) return;
     checkAdmin();
-  }, [program, wallet]);
+  }, [program, wallet, connected]);
 
   const checkAdmin = async () => {
-    if (!program || !wallet) return; // Double-check
+    if (!program || !wallet) return;
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     try {
       const config = await program.account.gameConfig.fetch(configPda);
-      setIsAdmin(config.admin.toBase58() === wallet.toBase58()); // wallet is not null here
+      setIsAdmin(config.admin.toBase58() === wallet.toBase58());
       loadLastRound();
     } catch (e) {
       console.log('Config not initialized');
@@ -32,14 +33,15 @@ export default function AdminPage() {
   };
 
   const executeRound = async () => {
-    if (!program || !isAdmin || !wallet) return;
+    if (!program || !wallet) return;
+    setLoading(true);
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from('vault')], program.programId);
     const [roundPda] = PublicKey.findProgramAddressSync([Buffer.from('round')], program.programId);
     const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId);
 
     try {
-      await program.methods.adminExecuteRound()
+      const sig = await program.methods.adminExecuteRound()
         .accounts({
           config: configPda,
           user: userPda,
@@ -47,28 +49,33 @@ export default function AdminPage() {
           round: roundPda,
           admin: wallet,
           userWallet: wallet,
-          clock: SystemProgram.programId,
+          clock: SYSVAR_CLOCK_PUBKEY,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      setStatus('Round executed!');
+      setStatus(`Round executed! Tx: ${sig.slice(0, 8)}...`);
       loadLastRound();
     } catch (e: any) {
-      setStatus('Error: ' + e.message);
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const changeAdmin = async () => {
-    if (!program || !isAdmin || !newAdmin || !wallet) return;
+    if (!program || !wallet || !newAdmin) return;
+    setLoading(true);
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     try {
-      await program.methods.adminChangeWallet(new PublicKey(newAdmin))
+      const sig = await program.methods.adminChangeWallet(new PublicKey(newAdmin))
         .accounts({ config: configPda, admin: wallet })
         .rpc();
-      setStatus('Admin changed!');
+      setStatus(`Admin changed! Tx: ${sig.slice(0, 8)}...`);
       checkAdmin();
     } catch (e: any) {
-      setStatus('Error: ' + e.message);
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,8 +90,7 @@ export default function AdminPage() {
     }
   };
 
-  // EARLY RETURN IF NO WALLET
-  if (!wallet) {
+  if (!connected) {
     return (
       <>
         <Navbar />
@@ -93,7 +99,6 @@ export default function AdminPage() {
     );
   }
 
-  // EARLY RETURN IF NOT ADMIN
   if (!isAdmin) {
     return (
       <>
@@ -108,8 +113,12 @@ export default function AdminPage() {
       <Navbar />
       <div className="max-w-2xl mx-auto p-6 pt-24 bg-red-900/50 rounded-xl border border-red-500">
         <h2 className="text-3xl font-bold mb-6 text-red-300">ADMIN PANEL</h2>
-        <button onClick={executeRound} className="w-full p-4 bg-red-600 rounded font-bold text-xl mb-4">
-          EXECUTE ROUND
+        <button
+          onClick={executeRound}
+          disabled={loading}
+          className="w-full p-4 bg-red-600 rounded font-bold text-xl mb-4 hover:bg-red-700 disabled:opacity-50 transition"
+        >
+          {loading ? 'Executing...' : 'EXECUTE ROUND'}
         </button>
         <div className="space-y-2">
           <input
@@ -118,9 +127,14 @@ export default function AdminPage() {
             value={newAdmin}
             onChange={(e) => setNewAdmin(e.target.value)}
             className="w-full p-3 bg-white/10 rounded"
+            disabled={loading}
           />
-          <button onClick={changeAdmin} className="w-full p-3 bg-orange-600 rounded">
-            Change Admin
+          <button
+            onClick={changeAdmin}
+            disabled={loading || !newAdmin}
+            className="w-full p-3 bg-orange-600 rounded hover:bg-orange-700 disabled:opacity-50 transition"
+          >
+            {loading ? 'Changing...' : 'Change Admin'}
           </button>
         </div>
         {lastRound && (
@@ -128,7 +142,11 @@ export default function AdminPage() {
             Last Crash: <strong>{lastRound.crashPoint.toFixed(2)}x</strong> (Round #{lastRound.id.toString()})
           </p>
         )}
-        {status && <p className="mt-4 text-yellow-300 text-center">{status}</p>}
+        {status && (
+          <p className={`mt-4 text-center font-medium ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>
+            {status}
+          </p>
+        )}
       </div>
     </>
   );
