@@ -1,0 +1,342 @@
+{
+    "version": "0.1.0",
+    "name": "crash123a",
+    "instructions": [
+      {
+        "name": "initialize",
+        "accounts": [
+          {
+            "name": "config",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "vault",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "payer",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "admin",
+            "type": "publicKey"
+          }
+        ]
+      },
+      {
+        "name": "createUser",
+        "accounts": [
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "userWallet",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": []
+      },
+      {
+        "name": "deposit",
+        "accounts": [
+          {
+            "name": "userWallet",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "vault",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      },
+      {
+        "name": "requestBet",
+        "accounts": [
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "config",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "userWallet",
+            "isMut": false,
+            "isSigner": true
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "targetMultiplier",
+            "type": "f64"
+          }
+        ]
+      },
+      {
+        "name": "adminExecuteRound",
+        "accounts": [
+          {
+            "name": "config",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "vault",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "round",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "admin",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "userWallet",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "clock",
+            "isMut": false,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": []
+      },
+      {
+        "name": "adminChangeWallet",
+        "accounts": [
+          {
+            "name": "config",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "admin",
+            "isMut": false,
+            "isSigner": true
+          }
+        ],
+        "args": [
+          {
+            "name": "newAdmin",
+            "type": "publicKey"
+          }
+        ]
+      },
+      {
+        "name": "withdraw",
+        "accounts": [
+          {
+            "name": "payer",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "user",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "vault",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "config",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    ],
+    "accounts": [
+      {
+        "name": "GameConfig",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "admin",
+              "type": "publicKey"
+            },
+            {
+              "name": "isInitialized",
+              "type": "bool"
+            },
+            {
+              "name": "maxBet",
+              "type": "u64"
+            }
+          ]
+        }
+      },
+      {
+        "name": "Vault",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "u64"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "UserAccount",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "owner",
+              "type": "publicKey"
+            },
+            {
+              "name": "balance",
+              "type": "u64"
+            },
+            {
+              "name": "pending",
+              "type": {
+                "defined": "PendingBet"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Round",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "id",
+              "type": "u64"
+            },
+            {
+              "name": "crashPoint",
+              "type": "f64"
+            }
+          ]
+        }
+      }
+    ],
+    "types": [
+      {
+        "name": "PendingBet",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "amount",
+              "type": "u64"
+            },
+            {
+              "name": "targetMultiplier",
+              "type": "f64"
+            },
+            {
+              "name": "payout",
+              "type": "u64"
+            }
+          ]
+        }
+      }
+    ],
+    "errors": [
+      {
+        "code": 6000,
+        "name": "InvalidAmount",
+        "msg": "Amount must be greater than zero"
+      },
+      {
+        "code": 6001,
+        "name": "InsufficientBalance",
+        "msg": "Insufficient balance"
+      },
+      {
+        "code": 6002,
+        "name": "BetTooLarge",
+        "msg": "Bet exceeds maximum allowed"
+      },
+      {
+        "code": 6003,
+        "name": "InvalidMultiplier",
+        "msg": "Target multiplier must be between 1.0 and 100.0"
+      },
+      {
+        "code": 6004,
+        "name": "Unauthorized",
+        "msg": "Unauthorized access"
+      }
+    ]
+  }

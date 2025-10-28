@@ -1,9 +1,9 @@
 import { AnchorProvider, Program } from '@project-serum/anchor';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-import idl from './idls/crash123a.json';
+import idl from '@/idls/crash123a.json';
 
-const PROGRAM_ID = new PublicKey('5ffMSBwMFAi7Du5eY2ChdtCxqPzRNznz8FermctEg');
+const PROGRAM_ID = new PublicKey('HE2H6NQHGqMJBAy6t3a8FuTetDXLw958wee6qRaT9ouY');
 
 let program: Program | null = null;
 
