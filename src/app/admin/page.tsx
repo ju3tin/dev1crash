@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useProgram } from '@/lib/anchor';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import Navbar from '@/components/Navbar';
 
 export default function AdminPage() {
   const program = useProgram();
-  const wallet = program?.provider.wallet.publicKey;
+  const { publicKey: wallet } = useWallet(); // Correct way
   const [isAdmin, setIsAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState('');
   const [status, setStatus] = useState('');
@@ -19,44 +20,54 @@ export default function AdminPage() {
   }, [program, wallet]);
 
   const checkAdmin = async () => {
-    const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program!.programId);
+    const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     try {
-      const config = await program!.account.gameConfig.fetch(configPda);
-      setIsAdmin(config.admin.toBase58() === wallet!.toBase58());
+      const config = await program.account.gameConfig.fetch(configPda);
+      setIsAdmin(config.admin.toBase58() === wallet.toBase58());
       loadLastRound();
-    } catch {}
+    } catch (e) {
+      console.log('Config not initialized');
+    }
   };
 
   const executeRound = async () => {
-    if (!program || !isAdmin) return;
+    if (!program || !isAdmin || !wallet) return;
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from('vault')], program.programId);
     const [roundPda] = PublicKey.findProgramAddressSync([Buffer.from('round')], program.programId);
-    const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet!.toBytes()], program.programId);
+    const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId);
 
-    await program.methods.adminExecuteRound()
-      .accounts({
-        config: configPda,
-        user:  userPda,
-        vault: vaultPda,
-        round: roundPda,
-        admin: wallet,
-        userWallet: wallet,
-        clock: SystemProgram.programId,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-    setStatus('Round executed!');
-    loadLastRound();
+    try {
+      await program.methods.adminExecuteRound()
+        .accounts({
+          config: configPda,
+          user: userPda,
+          vault: vaultPda,
+          round: roundPda,
+          admin: wallet,
+          userWallet: wallet,
+          clock: SystemProgram.programId,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      setStatus('Round executed!');
+      loadLastRound();
+    } catch (e: any) {
+      setStatus('Error: ' + e.message);
+    }
   };
 
   const changeAdmin = async () => {
-    if (!program || !isAdmin || !newAdmin) return;
+    if (!program || !isAdmin || !newAdmin || !wallet) return;
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
-    await program.methods.adminChangeWallet(new PublicKey(newAdmin))
-      .accounts({ config: configPda, admin: wallet })
-      .rpc();
-    setStatus('Admin changed!');
+    try {
+      await program.methods.adminChangeWallet(new PublicKey(newAdmin))
+        .accounts({ config: configPda, admin: wallet })
+        .rpc();
+      setStatus('Admin changed!');
+    } catch (e: any) {
+      setStatus('Error: ' + e.message);
+    }
   };
 
   const loadLastRound = async () => {
@@ -65,8 +76,17 @@ export default function AdminPage() {
     try {
       const data = await program.account.round.fetch(roundPda);
       setLastRound(data);
-    } catch {}
+    } catch (e) {
+      console.log('No round yet');
+    }
   };
+
+  if (!wallet) return (
+    <>
+      <Navbar />
+      <div className="pt-24 text-center">Connect wallet</div>
+    </>
+  );
 
   if (!isAdmin) return (
     <>
