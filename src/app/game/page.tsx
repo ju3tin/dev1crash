@@ -9,16 +9,17 @@ import Navbar from '@/components/Navbar';
 
 export default function GamePage() {
   const program = useProgram();
-  const { publicKey: wallet } = useWallet(); // Correct way
+  const { publicKey: wallet, connected } = useWallet();
   const [user, setUser] = useState<any>(null);
   const [amount, setAmount] = useState('');
   const [multiplier, setMultiplier] = useState('2.0');
   const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!program || !wallet) return;
+    if (!program || !wallet || !connected) return;
     loadUser();
-  }, [program, wallet]);
+  }, [program, wallet, connected]);
 
   const loadUser = async () => {
     if (!program || !wallet) return;
@@ -36,11 +37,12 @@ export default function GamePage() {
 
   const initializeGame = async () => {
     if (!program || !wallet) return;
+    setLoading(true);
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
     const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from('vault')], program.programId);
 
     try {
-      await program.methods.initialize(wallet)
+      const sig = await program.methods.initialize(wallet)
         .accounts({
           config: configPda,
           vault: vaultPda,
@@ -48,55 +50,63 @@ export default function GamePage() {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      setStatus('Game initialized!');
+      setStatus(`Game initialized! Tx: ${sig.slice(0, 8)}...`);
       loadUser();
     } catch (e: any) {
-      setStatus('Error: ' + e.message);
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const createUser = async () => {
     if (!program || !wallet) return;
+    setLoading(true);
     const [userPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('user'), wallet.toBytes()],
       program.programId
     );
     try {
-      await program.methods.createUser()
+      const sig = await program.methods.createUser()
         .accounts({ user: userPda, userWallet: wallet, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('User created!');
+      setStatus(`User created! Tx: ${sig.slice(0, 8)}...`);
       loadUser();
     } catch (e: any) {
-      setStatus('Error: ' + e.message);
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const deposit = async () => {
-    if (!program || !wallet) return;
+    if (!program || !wallet || !amount) return;
     const lamports = Math.floor(parseFloat(amount) * 1e9);
     if (isNaN(lamports) || lamports <= 0) {
       setStatus('Invalid amount');
       return;
     }
 
+    setLoading(true);
     const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId);
     const [vaultPda] = PublicKey.findProgramAddressSync([Buffer.from('vault')], program.programId);
 
     try {
-      await program.methods.deposit(new BN(lamports))
+      const sig = await program.methods.deposit(new BN(lamports))
         .accounts({ userWallet: wallet, user: userPda, vault: vaultPda, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('Deposited!');
+      setStatus(`Deposited ${amount} SOL! Tx: ${sig.slice(0, 8)}...`);
       setAmount('');
       loadUser();
     } catch (e: any) {
-      setStatus('Error: ' + e.message);
+      setStatus(`Deposit failed: ${e.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const placeBet = async () => {
-    if (!program || !wallet) return;
+    if (!program || !wallet || !amount || !multiplier) return;
     const lamports = Math.floor(parseFloat(amount) * 1e9);
     const target = parseFloat(multiplier);
     if (isNaN(lamports) || lamports <= 0 || isNaN(target) || target < 1.01) {
@@ -104,19 +114,22 @@ export default function GamePage() {
       return;
     }
 
+    setLoading(true);
     const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId);
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
 
     try {
-      await program.methods.requestBet(new BN(lamports), target)
+      const sig = await program.methods.requestBet(new BN(lamports), target)
         .accounts({ user: userPda, config: configPda, userWallet: wallet })
         .rpc();
-      setStatus('Bet placed!');
+      setStatus(`Bet placed! Tx: ${sig.slice(0, 8)}...`);
       setAmount('');
       setMultiplier('2.0');
       loadUser();
     } catch (e: any) {
-      setStatus('Error: ' + e.message);
+      setStatus(`Bet failed: ${e.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,21 +139,23 @@ export default function GamePage() {
       <div className="max-w-2xl mx-auto p-6 pt-24">
         <h1 className="text-4xl font-bold text-center mb-8">PLAY CRASH</h1>
 
-        {!wallet ? (
+        {!connected ? (
           <p className="text-center text-yellow-300">Connect wallet to play</p>
         ) : !user ? (
           <div className="space-y-4">
             <button
               onClick={initializeGame}
-              className="w-full p-4 bg-purple-700 rounded-lg text-xl font-bold hover:bg-purple-800 transition"
+              disabled={loading}
+              className="w-full p-4 bg-purple-700 rounded-lg text-xl font-bold hover:bg-purple-800 disabled:opacity-50 transition"
             >
-              INITIALIZE GAME (Run Once)
+              {loading ? 'Initializing...' : 'INITIALIZE GAME (Run Once)'}
             </button>
             <button
               onClick={createUser}
-              className="w-full p-4 bg-green-600 rounded-lg text-xl font-bold hover:bg-green-700 transition"
+              disabled={loading}
+              className="w-full p-4 bg-green-600 rounded-lg text-xl font-bold hover:bg-green-700 disabled:opacity-50 transition"
             >
-              Create User Account
+              {loading ? 'Creating...' : 'Create User Account'}
             </button>
           </div>
         ) : (
@@ -162,12 +177,14 @@ export default function GamePage() {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   className="w-full p-3 bg-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
                 />
                 <button
                   onClick={deposit}
-                  className="w-full p-3 bg-blue-600 rounded font-bold hover:bg-blue-700 transition"
+                  disabled={loading || !amount}
+                  className="w-full p-3 bg-blue-600 rounded font-bold hover:bg-blue-700 disabled:opacity-50 transition"
                 >
-                  Deposit
+                  {loading ? 'Depositing...' : 'Deposit'}
                 </button>
               </div>
               <div className="space-y-2">
@@ -177,18 +194,20 @@ export default function GamePage() {
                   value={multiplier}
                   onChange={(e) => setMultiplier(e.target.value)}
                   className="w-full p-3 bg-white/10 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  disabled={loading}
                 />
                 <button
                   onClick={placeBet}
-                  className="w-full p-3 bg-red-600 rounded font-bold hover:bg-red-700 transition"
+                  disabled={loading || !amount || !multiplier}
+                  className="w-full p-3 bg-red-600 rounded font-bold hover:bg-red-700 disabled:opacity-50 transition"
                 >
-                  Place Bet
+                  {loading ? 'Placing...' : 'Place Bet'}
                 </button>
               </div>
             </div>
 
             {status && (
-              <p className={`text-center mt-4 font-medium ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>
+              <p className={`text-center mt-4 font-medium ${status.includes('Error') || status.includes('failed') ? 'text-red-400' : 'text-green-400'}`}>
                 {status}
               </p>
             )}
