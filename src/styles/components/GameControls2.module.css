@@ -1,0 +1,23 @@
+.BetButton {
+	width: 100%;
+}
+.inputGroup {
+	display: flex;
+	flex-direction: column; /* Stack vertically by default */
+	margin-bottom: 1rem; /* Space between input groups */
+  }
+  
+  @media (max-width: 600px) { /* Adjust the breakpoint as needed */
+	.inputGroup {
+	  flex-direction: row; /* Change to row for small screens */
+	  align-items: center; /* Center items vertically */
+	}
+  
+	.inputGroup Label {
+	  margin-right: 0.5rem; /* Space between label and input */
+	}
+  
+	.inputGroup Input {
+	  flex: 1; /* Allow input to take available space */
+	}
+  }

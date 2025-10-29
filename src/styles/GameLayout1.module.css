@@ -1,0 +1,55 @@
+
+@media only screen and (min-width: 64em) {
+	.GameLayout {
+		display: grid;
+		gap: 1em;
+	}
+
+	.GameLayout {
+		grid-template-areas:
+			"crashlist crashlist crashlist"
+			"gamecontrols main main"
+			"betlist betlist betlist";
+	}
+
+	.GameLayout > *:nth-child(1) {
+		grid-area: crashlist;
+	}
+
+	.GameLayout > *:nth-child(2) {
+		grid-area: gamecontrols;
+	}
+
+	.GameLayout > *:nth-child(3) {
+		grid-area: main;
+	}
+}
+
+@media only screen and not(min-width: 64em) {
+	.GameLayout {
+		display: flex;
+		flex-direction: column;
+		gap: 2em;
+	}
+}
+
+.inputGroup {
+	display: flex;
+	flex-direction: column; /* Stack vertically by default */
+	margin-bottom: 1rem; /* Space between input groups */
+  }
+  
+  @media (max-width: 600px) { /* Adjust the breakpoint as needed */
+	.inputGroup {
+	  flex-direction: row; /* Change to row for small screens */
+	  align-items: center; /* Center items vertically */
+	}
+  
+	.inputGroup Label {
+	  margin-right: 0.5rem; /* Space between label and input */
+	}
+  
+	.inputGroup Input {
+	  flex: 1; /* Allow input to take available space */
+	}
+  }

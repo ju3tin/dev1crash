@@ -1,0 +1,26 @@
+.CrashList {
+	display: flex;
+	cursor: pointer;
+	gap: 0.4em;
+	max-width: 100vw;
+	justify-content: flex-end;
+	flex-direction: row-reverse;
+}
+
+.CrashListItem {
+	background-color: orange;
+	padding: 0.5rem;
+	border-radius: 1.2em;
+	width: 5em;
+	text-align: center;
+}
+
+.CrashListItem:hover {
+	background-color: darkorange;
+	transition: background-color 500ms;
+}
+
+.CrashStats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}

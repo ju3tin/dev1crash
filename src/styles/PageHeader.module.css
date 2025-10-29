@@ -1,0 +1,16 @@
+.PageHeader {
+	color: white;
+	background-color: black;
+	padding: 1em;
+	display: flex;
+	justify-content: space-between;
+}
+
+.PageHeader h1 {
+	font-size: 160%;
+}
+
+.WalletButton {
+	display: flex;
+	align-items: center;
+}

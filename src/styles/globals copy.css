@@ -1,0 +1,39 @@
+/* styles/globals.css */
+body {
+    font-family: 'KillSwitch', sans-serif; /* Use your font */
+}
+.bet-input {
+    color: #ff0000; /* Change this to your desired text color */
+  }
+  .full-width-table {
+    width: 100%; /* Set table width to 100% */
+    border-collapse: collapse; /* Optional: for better border handling */
+  }
+  
+  .full-width-table th, .full-width-table td {
+    border: 1px solid #ccc; /* Optional: add borders to table cells */
+    padding: 8px; /* Optional: add padding for better spacing */
+    text-align: left; /* Optional: align text to the left */
+  }
+
+  /* Add this to your CSS file */
+.button-active {
+    background-color: #4CAF50; /* Green background for active button */
+    color: white; /* White text color */
+    border: none; /* No border */
+    padding: 10px 20px; /* Padding for better appearance */
+    cursor: pointer; /* Pointer cursor on hover */
+  }
+  
+  .button-disabled {
+    background-color: #ccc; /* Gray background for disabled button */
+    color: #666; /* Darker text color for disabled state */
+    border: none; /* No border */
+    padding: 10px 20px; /* Padding for better appearance */
+    cursor: not-allowed; /* Not-allowed cursor for disabled state */
+  }
+
+  #gameCanvas {
+    transform: scale(0.5); /* Scales the canvas down to 50% of its original size */
+    transform-origin: top left; /* Ensures scaling starts from the top-left corner */
+  }
