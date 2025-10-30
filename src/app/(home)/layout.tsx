@@ -7,7 +7,7 @@ import ContextProvider from '@/components/context-provider';
 import Head from 'next/head'
 import { Analytics } from "@vercel/analytics/react";
 import Header from './header';
-import { WalletProvider } from "./wallet-provider"
+import { WalletProvider } from "@/wallet-provider"
 import { ErrorBoundary } from "@/components/error-boundary"
 
 const inter = Inter({ subsets: ["latin"] })
