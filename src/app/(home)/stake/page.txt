@@ -21,6 +21,12 @@ import CoinMarketCapWidget from "@/components/Coinmaket"
 
 // Define the IDL structure properly
 interface StakingProgramIDL {
+  address: string
+  metadata: {
+    name: string
+    version: string
+    spec: string
+  }
   version: string
   name: string
   instructions: any[]
@@ -32,6 +38,12 @@ interface StakingProgramIDL {
 // Import IDL as a module to avoid parsing issues
 const getIDL = (): StakingProgramIDL => {
   return {
+    address: programId.toBase58(),
+    metadata: {
+      name: "staking_program",
+      version: "0.1.0",
+      spec: "0.1.0"
+    },
     version: "0.1.0",
     name: "staking_program",
     instructions: [
@@ -123,11 +135,11 @@ const getIDL = (): StakingProgramIDL => {
   }
 }
 
-// Type the program properly
-type StakingProgram = Program<StakingProgramIDL>
-
 // Your actual program ID
 const programId = new PublicKey("Bz7Nx1F3Mti1BVS7ZAVDLSKGEaejufxvX2DPdjpf8PqT")
+
+// Type the program properly
+type StakingProgram = Program<StakingProgramIDL>
 
 // Type the IDL properly
 // type StakingProgram = Program<typeof idl>
