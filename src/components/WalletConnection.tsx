@@ -13,7 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { useGameStore } from "@/store/gameStore2";
 import { WalletAdapter } from "@solana/wallet-adapter-base";
 

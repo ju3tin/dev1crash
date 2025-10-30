@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Fish } from "lucide-react"
-import GameChat from "../../components/game-chat3a"
+import GameChat from "@/components/game-chat3a"
 import PathAnimation from '@/components/PathAnimation';
-import Betbutton from "../../components/betbutton1a"
-import BetList from "../../components/BetList1"
-import GameVisual from '../../components/visualization123';
-import GameHistory from '../../components/gamehistory';
-import Tabs from '../../components/tabs3';
+import Betbutton from "@/components/betbutton1a"
+import BetList from "@/components/BetList1"
+import GameVisual from '@/components/visualization123';
+import GameHistory from '@/components/gamehistory';
+import Tabs from '@/components/tabs3';
 import useSound from 'use-sound';
 import { useGameStore, GameState } from '@/store/gameStore2';
 import { toast } from 'react-toastify';

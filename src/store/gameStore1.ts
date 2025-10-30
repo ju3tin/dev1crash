@@ -16,7 +16,7 @@ import { create } from "zustand";
 import { elapsedToMultiplier } from '../lib/utils3';
 import { Wallet } from "lucide-react";
 
-import { address1a } from "../components/WalletConnection";
+import { address1a } from "@/components/WalletConnection";
 //export let address1a: string = '';
 //const { wallet1a } = useWalletContext();
 export type GameStatus =
