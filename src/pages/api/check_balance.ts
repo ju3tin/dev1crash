@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data: BalanceResponse = await response.json();
+    const data = await response.json() as BalanceResponse;
     const balance = parseFloat(data.balance);
 
     if (data.status === 'success' && balance >= REQUIRED_AMOUNT) {
