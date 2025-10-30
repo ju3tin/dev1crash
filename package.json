@@ -22,6 +22,7 @@
     "@radix-ui/react-hover-card": "^1.1.15",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-menubar": "^1.1.16",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-react": "^0.15.39",
     "@solana/wallet-adapter-react-ui": "^0.9.39",
