@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@coral-xyz/anchor-cli": "^0.31.2",
     "@mui/material": "^7.3.4",
     "@nextui-org/react": "^2.6.11",
