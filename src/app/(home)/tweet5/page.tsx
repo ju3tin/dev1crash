@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useWalletStore } from "../../store/walletstore1";
+import { useWalletStore } from "@/store/walletstore1";
 
 export default function Page() {
   const [tweetText, setTweetText] = useState("");
