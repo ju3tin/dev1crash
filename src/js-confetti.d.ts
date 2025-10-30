@@ -1,9 +1,13 @@
 // js-confetti.d.ts
-import 'js-confetti';
-
 declare module 'js-confetti' {
-  interface IAddConfettiConfig {
-    /** Allow use of custom image elements as confetti */
-    images?: HTMLImageElement[];
+  export default class JSConfetti {
+    addConfetti(options?: {
+      emojis?: string[] | string[][];
+      emojiSize?: number;
+      confettiNumber?: number;
+      confettiRadius?: number;
+      confettiColors?: string[];
+      images?: HTMLImageElement[];
+    }): void;
   }
 }
