@@ -51,6 +51,7 @@
     "decimal.js": "^10.6.0",
     "dotenv": "^17.2.3",
     "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.23.24",
     "js-confetti": "^0.13.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.548.0",
@@ -73,6 +74,7 @@
     "tailwindcss": "^3.4.18",
     "three": "^0.180.0",
     "twitter-api-v2": "^1.27.0",
+    "use-sound": "^5.0.0",
     "vaul": "^1.1.2",
     "zustand": "^5.0.8"
   },

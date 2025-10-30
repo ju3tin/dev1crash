@@ -1,0 +1,21 @@
+.main {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+.main1 {
+	
+	width: 100%;
+}
+#gameCanvas {
+    transform: scale(0.5); /* Scales the canvas down to 50% of its original size */
+    transform-origin: top left; /* Ensures scaling starts from the top-left corner */
+  }
+@media only screen and (min-width: 64em) {
+	.main {
+		/*padding: 4rem;*/	
+	}
+}
+
