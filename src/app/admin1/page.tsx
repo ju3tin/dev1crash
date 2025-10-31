@@ -16,16 +16,16 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [game, setGame] = useState<any>(null);
 
-  const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program?.programId!);
+  const configPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
 
   useEffect(() => {
-    if (!program || !wallet) return;
+    if (!program || !wallet || !connected) return;
     checkAdmin();
     loadActiveGame();
-  }, [program, wallet]);
+  }, [program, wallet, connected]);
 
   const checkAdmin = async () => {
-    if (!program) return;
+    if (!program || !configPda) return;
     try {
       const config = await program.account.config.fetch(configPda);
       setIsAdmin(config.admin.toBase58() === wallet?.toBase58());
@@ -40,24 +40,28 @@ export default function AdminPage() {
   };
 
   const updateAdmin = async () => {
-    if (!program || !wallet || !newAdmin) return;
+    if (!program || !wallet || !configPda || !newAdmin) return;
     setLoading(true);
     try {
-      await program.methods.updateAdmin(new PublicKey(newAdmin))
+      const sig = await program.methods.updateAdmin(new PublicKey(newAdmin))
         .accounts({ config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('Admin updated!');
-    } catch (e: any) { setStatus(e.message); }
-    setLoading(false);
+      setStatus(`Admin updated! Tx: ${sig.slice(0, 8)}...`);
+      checkAdmin();
+    } catch (e: any) {
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resolveGame = async () => {
-    if (!program || !wallet || !game) return;
+    if (!program || !wallet || !game || !configPda) return;
     const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), wallet.toBytes()], program.programId);
     const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId);
     setLoading(true);
     try {
-      await program.methods.resolveGame(crashed)
+      const sig = await program.methods.resolveGame(crashed)
         .accounts({
           gameState: game.gameId,
           bet: betPda,
@@ -69,8 +73,11 @@ export default function AdminPage() {
         .rpc();
       setStatus(crashed ? 'Game crashed!' : 'Players won!');
       loadActiveGame();
-    } catch (e: any) { setStatus(e.message); }
-    setLoading(false);
+    } catch (e: any) {
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!connected) return <><Navbar /><div className="pt-24 text-center">Connect wallet</div></>;
@@ -102,7 +109,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {status && <p className="mt-4 text-center text-yellow-300">{status}</p>}
+        {status && <p className={`mt-4 text-center ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{status}</p>}
       </div>
     </>
   );

@@ -10,96 +10,105 @@ import Navbar from '@/components/Navbar';
 export default function GamePage() {
   const program = useProgram();
   const { publicKey: wallet, connected } = useWallet();
-  const [balance, setBalance] = useState<any>(null);
-  const [game, setGame] = useState<any>(null);
-  const [betAmount, setBetAmount] = useState('');
-  const [multiplier, setMultiplier] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [amount, setAmount] = useState('');
+  const [multiplier, setMultiplier] = useState('2.0');
   const [gameName, setGameName] = useState('Crash #1');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], program?.programId!);
-  const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet?.toBytes()!], program?.programId!);
+  // PDAs — only calculate when ready
+  const configPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
+  const userPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId)[0] : null;
 
   useEffect(() => {
-    if (!program || !wallet) return;
-    loadBalance();
-    loadActiveGame();
-  }, [program, wallet]);
+    if (!program || !wallet || !connected) return;
+    loadUser();
+  }, [program, wallet, connected]);
 
-  const loadBalance = async () => {
-    if (!program || !wallet) return;
+  const loadUser = async () => {
+    if (!program || !userPda) return;
     try {
       const data = await program.account.userBalance.fetch(userPda);
-      setBalance(data);
+      setUser(data);
     } catch {
-      setBalance(null);
+      setUser(null);
     }
   };
 
-  const loadActiveGame = async () => {
-    if (!program) return;
-    const games = await program.account.gameState.all();
-    const active = games.find(g => g.account.active);
-    setGame(active?.account || null);
-  };
-
   const initialize = async () => {
-    if (!program || !wallet) return;
+    if (!program || !wallet || !configPda) return;
     setLoading(true);
     try {
-      await program.methods.initialize(wallet)
+      const sig = await program.methods.initialize(wallet)
         .accounts({ config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('Game initialized!');
-    } catch (e: any) { setStatus(e.message); }
-    setLoading(false);
+      setStatus(`Initialized! Tx: ${sig.slice(0, 8)}...`);
+      loadUser();
+    } catch (e: any) {
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deposit = async () => {
-    if (!program || !wallet || !betAmount) return;
-    const lamports = Math.floor(parseFloat(betAmount) * 1e9);
+    if (!program || !wallet || !userPda || !amount) return;
+    const lamports = Math.floor(parseFloat(amount) * 1e9);
+    if (lamports <= 0) {
+      setStatus('Invalid amount');
+      return;
+    }
     setLoading(true);
     try {
-      await program.methods.deposit(new BN(lamports))
+      const sig = await program.methods.deposit(new BN(lamports))
         .accounts({ userBalance: userPda, user: wallet, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('Deposited!');
-      setBetAmount('');
-      loadBalance();
-    } catch (e: any) { setStatus(e.message); }
-    setLoading(false);
+      setStatus(`Deposited! Tx: ${sig.slice(0, 8)}...`);
+      setAmount('');
+      loadUser();
+    } catch (e: any) {
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createGame = async () => {
-    if (!program || !wallet || !multiplier) return;
+    if (!program || !wallet || !configPda || !multiplier) return;
     const mult = Math.floor(parseFloat(multiplier) * 100);
     const [gamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), Buffer.from(gameName)], program.programId);
     setLoading(true);
     try {
-      await program.methods.createGame(new BN(mult), gameName)
+      const sig = await program.methods.createGame(new BN(mult), gameName)
         .accounts({ gameState: gamePda, config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('Game created!');
-      loadActiveGame();
-    } catch (e: any) { setStatus(e.message); }
-    setLoading(false);
+      setStatus(`Game created! Tx: ${sig.slice(0, 8)}...`);
+    } catch (e: any) {
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const placeBet = async () => {
-    if (!program || !wallet || !betAmount || !game) return;
-    const lamports = Math.floor(parseFloat(betAmount) * 1e9);
+    if (!program || !wallet || !userPda || !configPda || !amount) return;
+    const lamports = Math.floor(parseFloat(amount) * 1e9);
     const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), wallet.toBytes()], program.programId);
+    const [gamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), Buffer.from(gameName)], program.programId);
     setLoading(true);
     try {
-      await program.methods.placeBet(wallet, new BN(lamports))
-        .accounts({ bet: betPda, userBalance: userPda, gameState: game.gameId, config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
+      const sig = await program.methods.placeBet(wallet, new BN(lamports))
+        .accounts({ bet: betPda, userBalance: userPda, gameState: gamePda, config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
         .rpc();
-      setStatus('Bet placed!');
-      setBetAmount('');
-      loadBalance();
-    } catch (e: any) { setStatus(e.message); }
-    setLoading(false);
+      setStatus(`Bet placed! Tx: ${sig.slice(0, 8)}...`);
+      setAmount('');
+      loadUser();
+    } catch (e: any) {
+      setStatus(`Error: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,34 +119,35 @@ export default function GamePage() {
 
         {!connected ? (
           <p className="text-center text-yellow-300">Connect wallet</p>
-        ) : !balance ? (
+        ) : !user ? (
           <div className="space-y-4">
-            <button onClick={initialize} className="w-full p-4 bg-purple-700 rounded-lg font-bold">INITIALIZE</button>
-            <button onClick={deposit} className="w-full p-4 bg-green-600 rounded-lg font-bold">DEPOSIT</button>
+            <button onClick={initialize} disabled={loading} className="w-full p-4 bg-purple-700 rounded-lg font-bold">
+              {loading ? 'Initializing...' : 'INITIALIZE GAME'}
+            </button>
+            <button onClick={deposit} disabled={loading} className="w-full p-4 bg-green-600 rounded-lg font-bold">
+              {loading ? 'Depositing...' : 'DEPOSIT'}
+            </button>
           </div>
         ) : (
           <>
             <div className="bg-white/10 p-6 rounded-xl text-center mb-6">
-              <p>Balance: {(balance.balance / 1e9).toFixed(4)} SOL</p>
+              <p>Balance: {(user.balance / 1e9).toFixed(4)} SOL</p>
             </div>
 
-            {!game ? (
-              <div className="space-y-4">
-                <input placeholder="Multiplier (e.g. 2.0)" value={multiplier} onChange={e => setMultiplier(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-                <input placeholder="Game Name" value={gameName} onChange={e => setGameName(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-                <button onClick={createGame} disabled={loading} className="w-full p-4 bg-purple-600 rounded-lg font-bold">
-                  {loading ? 'Creating...' : 'CREATE GAME'}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-center">Active: {game.gameName} @ {game.multiplier / 100}x</p>
-                <input placeholder="Bet Amount (SOL)" value={betAmount} onChange={e => setBetAmount(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-                <button onClick={placeBet} disabled={loading} className="w-full p-4 bg-red-600 rounded-lg font-bold">
-                  {loading ? 'Betting...' : 'PLACE BET'}
-                </button>
-              </div>
-            )}
+            <div className="space-y-4">
+              <input placeholder="Multiplier (e.g. 2.0)" value={multiplier} onChange={e => setMultiplier(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
+              <input placeholder="Game Name" value={gameName} onChange={e => setGameName(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
+              <button onClick={createGame} disabled={loading} className="w-full p-4 bg-purple-600 rounded-lg font-bold">
+                {loading ? 'Creating...' : 'CREATE GAME'}
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <input placeholder="Bet Amount (SOL)" value={amount} onChange={e => setAmount(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
+              <button onClick={placeBet} disabled={loading} className="w-full p-4 bg-red-600 rounded-lg font-bold">
+                {loading ? 'Betting...' : 'PLACE BET'}
+              </button>
+            </div>
 
             {status && <p className={`text-center mt-4 ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{status}</p>}
           </>
