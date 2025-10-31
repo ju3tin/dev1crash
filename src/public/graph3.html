@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bezier Curve: Dual Axis Animation</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        svg { border: 1px solid #ddd; background: #fafafa; }
+        .title { font-size: 18px; font-weight: bold; }
+        .axis-label { font-size: 12px; font-weight: bold; fill: #666; }
+        .legend { font-size: 12px; fill: steelblue; }
+        .grid { stroke: #eee; stroke-dasharray: 2,2; }
+    </style>
+</head>
+<body>
+    <h2>Bezier Curve: Dual Axis Animation</h2>
+    <svg width="500" height="350"></svg>
+
+    <script>
+        // SVG Setup
+        const svg = d3.select("svg");
+        const width = +svg.attr("width");
+        const height = +svg.attr("height");
+        const margin = { top: 40, right: 50, bottom: 60, left: 70 };
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
+
+        const g = svg.append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Initial Scales
+        let x = d3.scaleLinear().domain([0, 8]).range([0, innerWidth]);
+        let y = d3.scaleLinear().domain([0, 100]).range([innerHeight, 0]);
+
+        // Grid Lines
+        g.append("g")
+            .attr("class", "grid")
+            .call(d3.axisLeft(y).ticks(10).tickSize(-innerWidth))
+            .call(g => g.selectAll(".domain").remove());
+
+        g.append("g")
+            .attr("class", "grid")
+            .attr("transform", `translate(0,${innerHeight})`)
+            .call(d3.axisBottom(x).ticks(8).tickSize(-innerHeight))
+            .call(g => g.selectAll(".domain").remove());
+
+        // X-Axis
+        const xAxis = g.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${innerHeight})`)
+            .call(d3.axisBottom(x).tickValues(d3.range(0, 9)));
+
+        // Y-Axis  
+        const yAxis = g.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(y).tickValues(d3.range(0, 101, 20)));
+
+        // Axis Labels
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("text-anchor", "middle")
+            .attr("x", width / 2)
+            .attr("y", height - 10)
+            .text("Time (s)");
+
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("text-anchor", "middle")
+            .attr("x", -height / 2)
+            .attr("y", 10)
+            .attr("transform", "rotate(-90)")
+            .text("Value");
+
+        // Legend
+        const legend = svg.append("g")
+            .attr("transform", `translate(${width - 100}, 20)`);
+        legend.append("line")
+            .attr("x1", 0).attr("x2", 20)
+            .attr("stroke", "steelblue").attr("stroke-width", 2);
+        legend.append("text")
+            .attr("class", "legend")
+            .attr("x", 25).attr("y", 4)
+            .text("Progress Curve");
+
+        // Bezier Curve
+        const line = d3.line()
+            .x(d => x(d.t))
+            .y(d => y(d.value))
+            .curve(d3.curveBasis);
+
+        // Data: Time 0-8, Value 0-100
+        const data = d3.range(0, 8.1, 0.1).map(t => ({
+            t,
+            value: 50 + 40 * Math.sin(t * Math.PI * 2) + 10 * Math.cos(t * Math.PI)
+        }));
+
+        const path = g.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 3)
+            .attr("d", line);
+
+        // === ANIMATION PHASES ===
+        function phase1() {
+            console.log("🔄 Phase 1: X[0-8] Y[0-100]");
+            x.domain([0, 8]);
+            y.domain([0, 100]);
+            
+            xAxis.transition().duration(500).call(d3.axisBottom(x).tickValues(d3.range(0, 9)));
+            yAxis.transition().duration(500).call(d3.axisLeft(y).tickValues(d3.range(0, 101, 20)));
+            path.transition().duration(500).attr("d", line);
+            
+            setTimeout(phase2, 3000);
+        }
+
+        function phase2() {
+            console.log("↔️ Phase 2: X[-2,6] Y[20,120] (Slide!)");
+            x.domain([-2, 6]);
+            y.domain([20, 120]);
+            
+            xAxis.transition().duration(2000).call(d3.axisBottom(x).tickValues(d3.range(-2, 7)));
+            yAxis.transition().duration(2000).call(d3.axisLeft(y).tickValues(d3.range(20, 121, 20)));
+            path.transition().duration(2000).attr("d", line);
+            
+            setTimeout(phase3, 2000);
+        }
+
+        function phase3() {
+            console.log("✨ Phase 3: X[0-10] Y[0-150] (Sparse!)");
+            x.domain([0, 10]);
+            y.domain([0, 150]);
+            
+            xAxis.transition().duration(1000).call(d3.axisBottom(x).tickValues([0, 5, 10]));
+            yAxis.transition().duration(1000).call(d3.axisLeft(y).tickValues([0, 50, 100, 150]));
+            path.transition().duration(1000).attr("d", line);
+            
+            setTimeout(phase1, 3000);
+        }
+
+        // Start!
+        phase1();
+    </script>
+</body>
+</html>

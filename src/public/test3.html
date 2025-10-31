@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana Crash Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.js"></script>
+  <script src="https://unpkg.com/@coral-xyz/anchor@0.30.1/dist/browser/index.js"></script>
+  <script src="index4.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
+  <div class="container mx-auto p-4 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-6 text-center">Solana Crash Game</h1>
+    
+    <!-- Wallet Connection -->
+    <div id="wallet-section" class="mb-6">
+      <button id="connect-wallet" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Connect Wallet
+      </button>
+      <p id="wallet-address" class="mt-2 text-sm"></p>
+    </div>
+
+    <!-- Game Initialization -->
+    <div id="init-game-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Initialize Game</h2>
+      <input id="max-players" type="number" min="1" max="255" placeholder="Max Players" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="init-game" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Initialize Game
+      </button>
+    </div>
+
+    <!-- Place Bet -->
+    <div id="bet-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Place Bet</h2>
+      <input id="bet-amount" type="number" min="0.01" step="0.01" placeholder="Bet Amount (SOL)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="place-bet" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Place Bet
+      </button>
+    </div>
+
+    <!-- Cash Out -->
+    <div id="cashout-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Cash Out</h2>
+      <input id="cashout-multiplier" type="number" min="1" step="0.1" placeholder="Multiplier (e.g., 2.0)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="cash-out" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Cash Out
+      </button>
+    </div>
+
+    <!-- Game Status -->
+    <div id="game-status" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Game Status</h2>
+      <p id="game-active" class="text-sm"></p>
+      <p id="current-players" class="text-sm"></p>
+      <p id="current-multiplier" class="text-sm"></p>
+      <p id="escrow-balance" class="text-sm"></p>
+      <div id="crash-animation" class="mt-4 h-20 bg-gray-800 rounded text-center leading-[5rem] text-lg"></div>
+    </div>
+
+    <!-- Start/End Game (Authority Only) -->
+    <div id="admin-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Admin Controls</h2>
+      <input id="crash-point" type="number" min="1" step="0.1" placeholder="Crash Point (e.g., 5.0)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="start-game" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mr-2 disabled:opacity-50">
+        Start Game
+      </button>
+      <button id="end-game" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        End Game
+      </button>
+    </div>
+
+    <p id="error-message" class="text-red-500 text-sm"></p>
+  </div>
+</body>
+</html>

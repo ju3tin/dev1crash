@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana Crash Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
+  <div class="container mx-auto p-4 max-w-2xl">
+    <h1 class="text-3xl font-bold mb-6 text-center">Solana Crash Game</h1>
+    
+    <!-- Wallet Connection -->
+    <div id="wallet-section" class="mb-6">
+      <button id="connect-wallet" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Connect Wallet
+      </button>
+      <p id="wallet-address" class="mt-2 text-sm"></p>
+    </div>
+
+    <!-- Add to Escrow -->
+    <div id="escrow-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Add to Escrow</h2>
+      <input id="escrow-amount" type="number" min="0.01" step="0.01" placeholder="Amount (SOL)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="add-to-escrow" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Add to Escrow
+      </button>
+    </div>
+
+    <!-- Game Initialization -->
+    <div id="init-game-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Initialize Game</h2>
+      <input id="max-players" type="number" min="1" max="255" placeholder="Max Players" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="init-game" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Initialize Game
+      </button>
+    </div>
+
+    <!-- Place Bet -->
+    <div id="bet-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Place Bet</h2>
+      <input id="bet-amount" type="number" min="0.01" step="0.01" placeholder="Bet Amount (SOL)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="place-bet" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Place Bet
+      </button>
+    </div>
+
+    <!-- Cash Out -->
+    <div id="cashout-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Cash Out</h2>
+      <input id="cashout-multiplier" type="number" min="1" step="0.1" placeholder="Multiplier (e.g., 2.0)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="cash-out" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        Cash Out
+      </button>
+    </div>
+
+    <!-- Game Status -->
+    <div id="game-status" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Game Status</h2>
+      <p id="game-active" class="text-sm"></p>
+      <p id="current-players" class="text-sm"></p>
+      <p id="current-multiplier" class="text-sm"></p>
+      <p id="escrow-balance" class="text-sm"></p>
+      <div id="crash-animation" class="mt-4 h-20 bg-gray-800 rounded text-center leading-[5rem] text-lg"></div>
+    </div>
+
+    <!-- Start/End Game (Authority Only) -->
+    <div id="admin-section" class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Admin Controls</h2>
+      <input id="crash-point" type="number" min="1" step="0.1" placeholder="Crash Point (e.g., 5.0)" class="bg-gray-800 text-white p-2 rounded mr-2">
+      <button id="start-game" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mr-2 disabled:opacity-50">
+        Start Game
+      </button>
+      <button id="end-game" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">
+        End Game
+      </button>
+    </div>
+
+    <p id="error-message" class="text-red-500 text-sm"></p>
+  </div>
+
+  <script>
+    const { Connection, PublicKey, SystemProgram, Transaction, TransactionInstruction } = window.solanaWeb3;
+
+    const PROGRAM_ID = new PublicKey("4JnQm2avRVzUsB2yji4NWER4QVYoQdJtQ4Zy7njMk9Zs");
+    const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+    let wallet;
+    let animationInterval = null;
+
+    const ERROR_CODES = {
+      6000: "Game is already active",
+      6001: "Game is not active",
+      6002: "Game is full",
+      6003: "Bet amount too low",
+      6004: "Player already cashed out",
+      6005: "Game has crashed",
+      6006: "Invalid crash point",
+      6007: "Invalid multiplier",
+      6008: "No players in game"
+    };
+
+    // Discriminators from IDL
+    const ADD_TO_ESCROW_DISCRIM = new Uint8Array([69, 162, 124, 60, 196, 57, 219, 103]);
+    const CASH_OUT_DISCRIM = new Uint8Array([1, 110, 57, 58, 159, 157, 243, 192]);
+    const END_GAME_DISCRIM = new Uint8Array([224, 135, 245, 99, 67, 175, 121, 252]);
+    const INITIALIZE_GAME_DISCRIM = new Uint8Array([44, 62, 102, 247, 126, 208, 130, 215]);
+    const PLACE_BET_DISCRIM = new Uint8Array([222, 62, 67, 220, 63, 166, 126, 33]);
+    const START_GAME_DISCRIM = new Uint8Array([249, 47, 252, 172, 184, 162, 245, 14]);
+
+    // Serialization helpers
+    function createSerializer() {
+      return {
+        buffer: new Uint8Array(512), // Arbitrary size, can be larger if needed
+        offset: 0,
+        serializeU8(value) {
+          this.buffer[this.offset] = value;
+          this.offset += 1;
+        },
+        serializeU64(value) {
+          const view = new DataView(this.buffer.buffer, this.offset);
+          view.setBigUint64(0, BigInt(value), true);
+          this.offset += 8;
+        },
+        serializeBool(value) {
+          this.buffer[this.offset] = value ? 1 : 0;
+          this.offset += 1;
+        },
+        serializePubkey(value) {
+          this.buffer.set(value.toBytes(), this.offset);
+          this.offset += 32;
+        },
+        getData() {
+          return this.buffer.slice(0, this.offset);
+        }
+      };
+    }
+
+    // Deserialization helpers
+    function createDeserializer(buffer) {
+      return {
+        offset: 8, // Skip discriminator for accounts
+        deserializeU8() {
+          const value = this.buffer[this.offset];
+          this.offset += 1;
+          return value;
+        },
+        deserializeU64() {
+          const view = new DataView(this.buffer.buffer, this.buffer.byteOffset + this.offset);
+          const value = view.getBigUint64(0, true);
+          this.offset += 8;
+          return value;
+        },
+        deserializeBool() {
+          const value = this.buffer[this.offset] !== 0;
+          this.offset += 1;
+          return value;
+        },
+        deserializePubkey() {
+          const value = new PublicKey(this.buffer.slice(this.offset, this.offset + 32));
+          this.offset += 32;
+          return value;
+        }
+      };
+    }
+
+    // Deserialize Game account
+    function deserializeGame(data) {
+      const des = createDeserializer(data);
+      const authority = des.deserializePubkey();
+      const max_players = des.deserializeU8();
+      const current_players = des.deserializeU8();
+      const multiplier = des.deserializeU64();
+      const is_active = des.deserializeBool();
+      const crash_point = des.deserializeU64();
+      return { authority, max_players, current_players, multiplier, is_active, crash_point };
+    }
+
+    // Deserialize Escrow account
+    function deserializeEscrow(data) {
+      const des = createDeserializer(data);
+      const escrow_balance = des.deserializeU64();
+      return { escrow_balance };
+    }
+
+    // Connect wallet
+    async function connectWallet() {
+      toggleButtons(true);
+      if (!window.solana || !window.solana.isPhantom) {
+        showError("Please install Phantom Wallet");
+        toggleButtons(false);
+        return;
+      }
+      try {
+        await window.solana.connect();
+        wallet = window.solana;
+        document.getElementById("wallet-address").innerText = `Connected: ${wallet.publicKey.toString()}`;
+        document.getElementById("connect-wallet").disabled = true;
+        updateGameStatus();
+      } catch (err) {
+        showError("Failed to connect wallet: " + err.message);
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    // Add to Escrow
+    async function addToEscrow() {
+      if (!wallet) return showError("Wallet not connected");
+      toggleButtons(true);
+      const amount = parseFloat(document.getElementById("escrow-amount").value);
+      if (!amount || amount <= 0) {
+        showError("Invalid amount");
+        toggleButtons(false);
+        return;
+      }
+
+      const game = await findGamePda();
+      const escrow = await findEscrowPda(game);
+
+      const serializer = createSerializer();
+      serializer.buffer.set(ADD_TO_ESCROW_DISCRIM, 0);
+      serializer.offset = 8;
+      serializer.serializeU64(amount * 1e9); // lamports
+      const data = serializer.getData();
+
+      const keys = [
+        { pubkey: escrow, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+        { pubkey: game, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ];
+
+      const instruction = new TransactionInstruction({
+        keys,
+        programId: PROGRAM_ID,
+        data
+      });
+
+      try {
+        const tx = new Transaction().add(instruction);
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = wallet.publicKey;
+        const signedTx = await wallet.signTransaction(tx);
+        await connection.sendRawTransaction(signedTx.serialize());
+        showError("Added to escrow successfully", true);
+        updateGameStatus();
+      } catch (err) {
+        showError(parseError(err));
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    // Initialize Game
+    async function initializeGame() {
+      if (!wallet) return showError("Wallet not connected");
+      toggleButtons(true);
+      const maxPlayers = parseInt(document.getElementById("max-players").value);
+      if (!maxPlayers || maxPlayers < 1 || maxPlayers > 255) {
+        showError("Invalid max players (1-255)");
+        toggleButtons(false);
+        return;
+      }
+
+      const game = await findGamePda();
+
+      const serializer = createSerializer();
+      serializer.buffer.set(INITIALIZE_GAME_DISCRIM, 0);
+      serializer.offset = 8;
+      serializer.serializeU8(maxPlayers);
+      const data = serializer.getData();
+
+      const keys = [
+        { pubkey: game, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ];
+
+      const instruction = new TransactionInstruction({
+        keys,
+        programId: PROGRAM_ID,
+        data
+      });
+
+      try {
+        const tx = new Transaction().add(instruction);
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = wallet.publicKey;
+        const signedTx = await wallet.signTransaction(tx);
+        await connection.sendRawTransaction(signedTx.serialize());
+        showError("Game initialized successfully", true);
+        updateGameStatus();
+      } catch (err) {
+        showError(parseError(err));
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    // Place Bet
+    async function placeBet() {
+      if (!wallet) return showError("Wallet not connected");
+      toggleButtons(true);
+      const amount = parseFloat(document.getElementById("bet-amount").value);
+      if (!amount || amount <= 0) {
+        showError("Invalid bet amount");
+        toggleButtons(false);
+        return;
+      }
+
+      const game = await findGamePda();
+      const bet = await findBetPda(game, wallet.publicKey);
+      const escrow = await findEscrowPda(game);
+
+      const serializer = createSerializer();
+      serializer.buffer.set(PLACE_BET_DISCRIM, 0);
+      serializer.offset = 8;
+      serializer.serializeU64(amount * 1e9);
+      const data = serializer.getData();
+
+      const keys = [
+        { pubkey: game, isSigner: false, isWritable: true },
+        { pubkey: bet, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+        { pubkey: escrow, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ];
+
+      const instruction = new TransactionInstruction({
+        keys,
+        programId: PROGRAM_ID,
+        data
+      });
+
+      try {
+        const tx = new Transaction().add(instruction);
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = wallet.publicKey;
+        const signedTx = await wallet.signTransaction(tx);
+        await connection.sendRawTransaction(signedTx.serialize());
+        showError("Bet placed successfully", true);
+        updateGameStatus();
+      } catch (err) {
+        showError(parseError(err));
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    // Cash Out
+    async function cashOut() {
+      if (!wallet) return showError("Wallet not connected");
+      toggleButtons(true);
+      const multiplier = parseFloat(document.getElementById("cashout-multiplier").value);
+      if (!multiplier || multiplier < 1) {
+        showError("Invalid multiplier");
+        toggleButtons(false);
+        return;
+      }
+
+      const game = await findGamePda();
+      const bet = await findBetPda(game, wallet.publicKey);
+      const escrow = await findEscrowPda(game);
+
+      const serializer = createSerializer();
+      serializer.buffer.set(CASH_OUT_DISCRIM, 0);
+      serializer.offset = 8;
+      serializer.serializeU64(multiplier * 100);
+      const data = serializer.getData();
+
+      const keys = [
+        { pubkey: game, isSigner: false, isWritable: false },
+        { pubkey: bet, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+        { pubkey: escrow, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: false }, // authority
+      ];
+
+      const instruction = new TransactionInstruction({
+        keys,
+        programId: PROGRAM_ID,
+        data
+      });
+
+      try {
+        const tx = new Transaction().add(instruction);
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = wallet.publicKey;
+        const signedTx = await wallet.signTransaction(tx);
+        await connection.sendRawTransaction(signedTx.serialize());
+        showError("Cashed out successfully", true);
+        updateGameStatus();
+      } catch (err) {
+        showError(parseError(err));
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    // Start Game
+    async function startGame() {
+      if (!wallet) return showError("Wallet not connected");
+      toggleButtons(true);
+      const crashPoint = parseFloat(document.getElementById("crash-point").value);
+      if (!crashPoint || crashPoint < 1) {
+        showError("Invalid crash point");
+        toggleButtons(false);
+        return;
+      }
+
+      const game = await findGamePda();
+
+      const serializer = createSerializer();
+      serializer.buffer.set(START_GAME_DISCRIM, 0);
+      serializer.offset = 8;
+      serializer.serializeU64(crashPoint * 100);
+      const data = serializer.getData();
+
+      const keys = [
+        { pubkey: game, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: false },
+      ];
+
+      const instruction = new TransactionInstruction({
+        keys,
+        programId: PROGRAM_ID,
+        data
+      });
+
+      try {
+        const tx = new Transaction().add(instruction);
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = wallet.publicKey;
+        const signedTx = await wallet.signTransaction(tx);
+        await connection.sendRawTransaction(signedTx.serialize());
+        showError("Game started successfully", true);
+        animateCrash(crashPoint);
+        updateGameStatus();
+      } catch (err) {
+        showError(parseError(err));
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    // End Game
+    async function endGame() {
+      if (!wallet) return showError("Wallet not connected");
+      toggleButtons(true);
+
+      const game = await findGamePda();
+
+      const serializer = createSerializer();
+      serializer.buffer.set(END_GAME_DISCRIM, 0);
+      const data = serializer.getData();
+
+      const keys = [
+        { pubkey: game, isSigner: false, isWritable: true },
+        { pubkey: wallet.publicKey, isSigner: true, isWritable: false },
+      ];
+
+      const instruction = new TransactionInstruction({
+        keys,
+        programId: PROGRAM_ID,
+        data
+      });
+
+      try {
+        const tx = new Transaction().add(instruction);
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        tx.feePayer = wallet.publicKey;
+        const signedTx = await wallet.signTransaction(tx);
+        await connection.sendRawTransaction(signedTx.serialize());
+        showError("Game ended successfully", true);
+        resetCrashAnimation();
+        updateGameStatus();
+      } catch (err) {
+        showError(parseError(err));
+      } finally {
+        toggleButtons(false);
+      }
+    }
+
+    async function findGamePda() {
+      const [gamePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("game"), wallet.publicKey.toBuffer()],
+        PROGRAM_ID
+      );
+      return gamePda;
+    }
+
+    async function findBetPda(game, player) {
+      const [betPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("bet"), game.toBuffer(), player.toBuffer()],
+        PROGRAM_ID
+      );
+      return betPda;
+    }
+
+    async function findEscrowPda(game) {
+      const [escrowPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("escrow"), game.toBuffer()],
+        PROGRAM_ID
+      );
+      return escrowPda;
+    }
+
+    async function updateGameStatus() {
+      if (!wallet) return;
+      try {
+        const game = await findGamePda();
+        const gameAccount = await connection.getAccountInfo(game);
+        if (!gameAccount) return showError("Game account not found");
+        const gameState = deserializeGame(gameAccount.data);
+
+        const escrow = await findEscrowPda(game);
+        const escrowAccount = await connection.getAccountInfo(escrow);
+        const escrowState = deserializeEscrow(escrowAccount.data);
+
+        document.getElementById("game-active").innerText = `Active: ${gameState.is_active}`;
+        document.getElementById("current-players").innerText = `Current Players: ${gameState.current_players}/${gameState.max_players}`;
+        document.getElementById("current-multiplier").innerText = `Current Multiplier: ${Number(gameState.multiplier) / 100}x`;
+        document.getElementById("escrow-balance").innerText = `Escrow Balance: ${Number(escrowState.escrow_balance) / 1e9} SOL`;
+      } catch (err) {
+        showError("Failed to fetch game status: " + err.message);
+      }
+    }
+
+    function animateCrash(crashPoint) {
+      resetCrashAnimation();
+      const crashDiv = document.getElementById("crash-animation");
+      let multiplier = 1;
+      crashDiv.innerText = `Multiplier: ${multiplier.toFixed(2)}x`;
+      animationInterval = setInterval(() => {
+        multiplier += 0.1;
+        crashDiv.innerText = `Multiplier: ${multiplier.toFixed(2)}x`;
+        crashDiv.style.background = `linear-gradient(to right, #4ade80 ${Math.min(multiplier * 10, 100)}%, #1f2937 0%)`;
+        if (multiplier >= crashPoint) {
+          clearInterval(animationInterval);
+          animationInterval = null;
+          crashDiv.innerText = `Crashed at: ${multiplier.toFixed(2)}x`;
+          crashDiv.style.background = `linear-gradient(to right, #ef4444 100%, #1f2937 0%)`;
+        }
+      }, 100);
+    }
+
+    function resetCrashAnimation() {
+      if (animationInterval) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+      }
+      const crashDiv = document.getElementById("crash-animation");
+      crashDiv.innerText = "";
+      crashDiv.style.background = "";
+    }
+
+    function showError(message, isSuccess = false) {
+      const errorDiv = document.getElementById("error-message");
+      errorDiv.className = `text-sm ${isSuccess ? "text-green-500" : "text-red-500"}`;
+      errorDiv.innerText = message;
+      setTimeout(() => (errorDiv.innerText = ""), 5000);
+    }
+
+    function parseError(err) {
+      const errorCode = err.message.match(/custom program error: 0x( [0-9a-fA-F]+ )/)?.[1];
+      if (errorCode) {
+        const code = parseInt(errorCode, 16) + 6000; // Solana custom error offset
+        return ERROR_CODES[code] || `Unknown error code: ${code}`;
+      }
+      return `Error: ${err.message}`;
+    }
+
+    function toggleButtons(disable) {
+      const buttons = ["connect-wallet", "add-to-escrow", "init-game", "place-bet", "cash-out", "start-game", "end-game"];
+      buttons.forEach(id => {
+        const button = document.getElementById(id);
+        button.disabled = disable;
+        button.innerText = disable ? "Processing..." : button.dataset.originalText || button.innerText;
+        if (!button.dataset.originalText) button.dataset.originalText = button.innerText;
+      });
+    }
+
+    document.getElementById("connect-wallet").addEventListener("click", connectWallet);
+    document.getElementById("add-to-escrow").addEventListener("click", addToEscrow);
+    document.getElementById("init-game").addEventListener("click", initializeGame);
+    document.getElementById("place-bet").addEventListener("click", placeBet);
+    document.getElementById("cash-out").addEventListener("click", cashOut);
+    document.getElementById("start-game").addEventListener("click", startGame);
+    document.getElementById("end-game").addEventListener("click", endGame);
+  </script>
+</body>
+</html>

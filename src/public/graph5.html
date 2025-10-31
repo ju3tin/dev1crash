@@ -1,0 +1,176 @@
+<!DOCTYPE html> <!-- Declares the document type as HTML5 for modern browser rendering -->
+<html lang="en"> <!-- Defines the HTML document with English as the language -->
+<head> <!-- Contains metadata and resources for the page -->
+    <meta charset="UTF-8"> <!-- Sets character encoding to UTF-8 for universal text support -->
+    <title>Bezier Curve with Animated X, Y Axes, Curve, and Endpoint Image</title> <!-- Sets page title for browser tab -->
+    <script src="/js/d3.v7.min.js"></script> <!-- Loads local D3.js v7 (minified) from /js/ folder for offline use -->
+    <style> <!-- Defines CSS styles for the page -->
+        body { font-family: Arial, sans-serif; margin: 20px; } <!-- Sets body font to Arial (or sans-serif) with 20px margin -->
+        svg { border: 1px solid #ccc; background: #f9f9f9; } <!-- Styles SVG with light gray border and background -->
+        .axis-label { font-size: 12px; fill: #333; } <!-- Styles axis labels (commented out) with 12px font, dark gray fill -->
+        .title { font-size: 16px; font-weight: bold; fill: #333; } <!-- Styles chart title (commented out) with 16px bold font -->
+    </style> <!-- Closes the CSS style block -->
+</head> <!-- Closes the head section -->
+<body> <!-- Contains the visible content of the page -->
+    <svg width="400" height="200"></svg> <!-- Creates SVG canvas of 400px wide by 200px tall for the chart -->
+
+    <script> <!-- Begins JavaScript code block -->
+        // SVG Setup
+        const svg = d3.select("svg"); // Selects the SVG element in the DOM using D3
+        const width = +svg.attr("width"); // Gets SVG width (400) as a number
+        const height = +svg.attr("height"); // Gets SVG height (200) as a number
+        const margin = { top: 20, right: 50, bottom: 20, left: 70 }; // Defines margins: top 40px, right 50px, bottom 60px, left 70px
+        const innerWidth = width - margin.left - margin.right; // Calculates inner chart width (400 - 70 - 50 = 280px)
+        const innerHeight = height - margin.top - margin.bottom; // Calculates inner chart height (200 - 40 - 60 = 100px)
+
+        const g = svg.append("g") // Appends a <g> (group) element to SVG for chart content
+            .attr("transform", `translate(${margin.left},${margin.top})`); // Translates group by (70,40) for margins
+
+        // Scales
+        let x = d3.scaleLinear() // Creates linear scale for x-axis (time)
+            .domain([0, 10]) // Sets initial x-domain from 0 to 10 (time units)
+            .range([0, innerWidth]); // Maps to pixel range 0 to 280px
+
+        let y = d3.scaleLinear() // Creates linear scale for y-axis (value)
+            .domain([0, 5]) // Sets initial y-domain from 0 to 5 (value units)
+            .range([innerHeight, 0]); // Maps to pixel range 100px to 0 (inverted for SVG)
+
+        // Axes Groups
+        const xAxisGroup = g.append("g") // Appends a <g> for x-axis elements
+            .attr("class", "x-axis") // Assigns class "x-axis" for styling
+            .attr("transform", `translate(0,${innerHeight})`); // Moves x-axis to bottom (y=100px)
+
+        const yAxisGroup = g.append("g") // Appends a <g> for y-axis elements
+            .attr("class", "y-axis"); // Assigns class "y-axis" for styling
+
+        // Initial Axes
+        xAxisGroup.call(d3.axisBottom(x).tickValues(d3.range(0, 9))); // Renders x-axis with ticks 0-8
+        yAxisGroup.call(d3.axisLeft(y).tickValues(d3.range(0, 6))); // Renders y-axis with ticks 0-5
+
+        // Bezier Curve Path Generator
+        const line = d3.line() // Creates a D3 line generator for the Bezier curve
+            .x(d => x(d.t)) // Maps data's 't' property to x-coordinate using x-scale
+            .y(d => y(d.value)) // Maps data's 'value' property to y-coordinate using y-scale
+            .curve(d3.curveBasis); // Applies Bezier smoothing (basis spline) for smooth curve
+
+        // Generate Data
+        function generateData(xDomain, yDomain) { // Defines function to generate Bezier curve data
+            const [xMin, xMax] = xDomain; // Destructures x-domain into min/max (e.g., [0,10])
+            const [yMin, yMax] = yDomain; // Destructures y-domain into min/max (e.g., [0,5])
+            const yMid = (yMin + yMax) / 2; // Calculates y midpoint (e.g., (0+5)/2 = 2.5)
+            const yAmp = (yMax - yMin) / 2 * 0.8; // Sets amplitude as 80% of y-range (e.g., (5-0)/2 * 0.8 = 2)
+            return d3.range(xMin, xMax + 0.1, 0.1).map(t => ({ // Creates array from xMin to xMax (step 0.1)
+                t, // Time value (x-axis)
+                value: yMid + yAmp * Math.sin(t * Math.PI / 4) // Sine wave for y-value, centered at yMid
+            }));
+        }
+
+        let data = generateData([0, 10], [0, 5]); // Generates initial data for x: 0-10, y: 0-5
+
+        // Path Tween for Curve Animation
+        function pathTween() { // Defines function to animate the curve's path
+            const l = this.getTotalLength(); // Gets total length of the current path
+            const i = d3.interpolateString(`M0,${y(0)}L${innerWidth},${y(0)}`, this.getAttribute("d")); // Interpolates from flat line to full path
+            return t => { // Returns function computing path at time t (0 to 1)
+                if (t < 0.5) { // First 50% of animation
+                    const p = this.getPointAtLength(t * 2 * l); // Gets point along path at scaled length
+                    return `M0,${y(0)}L${p.x},${p.y}`; // Draws line from start to current point
+                } else { // Second 50% of animation
+                    return i((t - 0.5) * 2); // Interpolates to full path shape
+                }
+            };
+        }
+
+        // Draw Initial Curve
+        const path = g.append("path") // Appends a <path> element for the Bezier curve
+            .datum(data) // Binds initial data array to the path
+            .attr("fill", "none") // Sets no fill for the path (open line)
+            .attr("stroke", "steelblue") // Sets line color to steelblue
+            .attr("stroke-width", 2) // Sets line thickness to 2px
+            .attr("d", `M0,${y(0)}L${innerWidth},${y(0)}`); // Sets initial path as flat line at y=0 (mapped)
+
+        // Add SVG Image at Curve Endpoint (Inline SVG Circle)
+        const endpointImage = g.append("circle") // Appends a <circle> as endpoint marker
+            .attr("cx", x(data[data.length - 1].t)) // Sets initial x-position to curve's last point's t
+            .attr("cy", y(data[data.length - 1].value)) // Sets initial y-position to curve's last point's value
+            .attr("r", 5) // Sets circle radius to 5px
+            .attr("fill", "red"); // Sets circle fill color to red
+
+        // Animation Sequence
+        function phase1() { // Defines Phase 1 of the animation
+            console.log("Phase 1: X 0-8 full, Y 0-5 full, Curve grows"); // Logs phase start for debugging
+            x.domain([0, 10]); // Sets x-domain to 0-10
+            y.domain([0, 5]); // Sets y-domain to 0-5
+            data = generateData([0, 10], [0, 5]); // Generates new data for current domains
+
+            xAxisGroup.transition().duration(500) // Starts 500ms transition for x-axis
+                .call(d3.axisBottom(x).tickValues(d3.range(0, 9))); // Updates x-axis with ticks 0-8
+            yAxisGroup.transition().duration(500) // Starts 500ms transition for y-axis
+                .call(d3.axisLeft(y).tickValues(d3.range(0, 6))); // Updates y-axis with ticks 0-5
+
+            path.datum(data) // Binds new data to the path
+                .transition() // Starts path transition
+                .duration(500) // Sets transition duration to 500ms
+                .attrTween("d", pathTween); // Animates path shape using pathTween
+
+            endpointImage.transition() // Starts transition for endpoint circle
+                .duration(500) // Matches path transition duration
+                .attr("cx", x(data[data.length - 1].t)) // Moves circle to new endpoint x
+                .attr("cy", y(data[data.length - 1].value)); // Moves circle to new endpoint y
+
+            setTimeout(phase2, 3000); // Schedules Phase 2 after 3s hold
+        }
+
+        function phase2() { // Defines Phase 2 of the animation
+            console.log("Phase 2: X slide left (0,6), Y slide up (1,6), Curve regrows"); // Logs phase start
+            x.domain([0, 6]); // Sets x-domain to 0-6 (slides left)
+            y.domain([1, 6]); // Sets y-domain to 1-6 (slides up)
+            data = generateData([0, 6], [1, 6]); // Generates new data for current domains
+
+            xAxisGroup.transition().duration(2000) // Starts 2s transition for x-axis
+                .call(d3.axisBottom(x).tickValues(d3.range(0, 7))); // Updates x-axis with ticks 0-6
+            yAxisGroup.transition().duration(2000) // Starts 2s transition for y-axis
+                .call(d3.axisLeft(y).tickValues(d3.range(1, 7))); // Updates y-axis with ticks 1-6
+
+            path.datum(data) // Binds new data to the path
+                .transition() // Starts path transition
+                .duration(2000) // Sets transition duration to 2s
+                .attrTween("d", pathTween); // Animates path shape
+
+            endpointImage.transition() // Starts transition for endpoint circle
+                .duration(2000) // Matches path transition duration
+                .attr("cx", x(data[data.length - 1].t)) // Moves circle to new endpoint x
+                .attr("cy", y(data[data.length - 1].value)); // Moves circle to new endpoint y
+
+            setTimeout(phase3, 2000); // Schedules Phase 3 after 2s
+        }
+
+        function phase3() { // Defines Phase 3 of the animation
+            console.log("Phase 3: X sparse 0-10, Y sparse 0-10, Curve regrows"); // Logs phase start
+            x.domain([0, 10]); // Sets x-domain to 0-10
+            y.domain([0, 10]); // Sets y-domain to 0-10
+            data = generateData([0, 10], [0, 10]); // Generates new data for current domains
+
+            xAxisGroup.transition().duration(1000) // Starts 1s transition for x-axis
+                .call(d3.axisBottom(x).tickValues([0, 5, 10])); // Updates x-axis with sparse ticks 0,5,10
+            yAxisGroup.transition().duration(1000) // Starts 1s transition for y-axis
+                .call(d3.axisLeft(y).tickValues([0, 5, 10])); // Updates y-axis with sparse ticks 0,5,10
+
+            path.datum(data) // Binds new data to the path
+                .transition() // Starts path transition
+                .duration(1000) // Sets transition duration to 1s
+                .attrTween("d", pathTween); // Animates path shape
+
+            endpointImage.transition() // Starts transition for endpoint circle
+                .duration(1000) // Matches path transition duration
+                .attr("cx", x(data[data.length - 1].t)) // Moves circle to new endpoint x
+                .attr("cy", y(data[data.length - 1].value)); // Moves circle to new endpoint y
+
+            setTimeout(phase1, 3000); // Schedules Phase 1 after 3s hold (loops)
+        }
+
+        // Start Animation
+        phase1(); // Initiates the animation by calling Phase 1
+    </script> <!-- Closes JavaScript block -->
+</body> <!-- Closes body section -->
+</html> <!-- Closes HTML document -->

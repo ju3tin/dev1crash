@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic X-Axis Labels with CSS</title>
+    <style>
+        .axis-container {
+            width: 400px;
+            height: 200px;
+            border: 1px solid #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .axis {
+            position: absolute;
+            bottom: 40px; /* Axis line position */
+            width: 100%;
+            height: 2px;
+            background: #000;
+        }
+
+        .label {
+            position: absolute;
+            bottom: 20px; /* Labels below axis */
+            font: 14px Arial;
+            text-align: center;
+            transition: opacity 1s, left 1s; /* Smooth transition for opacity and position */
+        }
+
+        .tick {
+            position: absolute;
+            bottom: 35px; /* Ticks aligned with axis */
+            width: 2px;
+            height: 10px;
+            background: #000;
+            transition: opacity 1s, left 1s;
+        }
+
+        /* Initial positions (max: 10, labels: 0, 2, 4, 6, 8, 10) */
+        .label-0 { left: 0%; }
+        .tick-0 { left: 0%; }
+        .label-2 { left: 20%; }
+        .tick-2 { left: 20%; }
+        .label-4 { left: 40%; }
+        .tick-4 { left: 40%; }
+        .label-6 { left: 60%; }
+        .tick-6 { left: 60%; }
+        .label-8 { left: 80%; }
+        .tick-8 { left: 80%; }
+        .label-10 { left: 100%; }
+        .tick-10 { left: 100%; }
+        .label-12, .tick-12 { left: 100%; opacity: 0; } /* Hidden initially */
+        .label-20, .tick-20 { left: 100%; opacity: 0; } /* Hidden initially */
+        .label-30, .tick-30 { left: 100%; opacity: 0; } /* Hidden initially */
+        .label-40, .tick-40 { left: 100%; opacity: 0; }
+        .label-50, .tick-50 { left: 100%; opacity: 0; }
+        .label-60, .tick-60 { left: 100%; opacity: 0; }
+        .label-70, .tick-70 { left: 100%; opacity: 0; }
+
+        /* Animations for each time segment */
+        @keyframes label-12-appear {
+            0% { opacity: 0; left: 100%; }
+            100% { opacity: 1; left: 100%; } /* Stays at 100% until max changes */
+        }
+
+        @keyframes label-12-move {
+            0% { left: 100%; }
+            100% { left: 85.71%; } /* 12/14 for max: 14 at 15s */
+        }
+
+        @keyframes label-0-move-15s {
+            0% { left: 0%; }
+            100% { left: 0%; } /* Stays at 0 */
+        }
+
+        @keyframes label-10-move-15s {
+            0% { left: 100%; }
+            100% { left: 50%; } /* 10/20 for max: 20 */
+        }
+
+        @keyframes label-12-move-15s {
+            0% { left: 85.71%; }
+            100% { left: 60%; } /* 12/20 for max: 20 */
+        }
+
+        @keyframes label-2-4-6-8-fade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes label-20-appear {
+            0% { opacity: 0; left: 100%; }
+            100% { opacity: 1; left: 100%; } /* 20/20 for max: 20 */
+        }
+
+        @keyframes label-0-move-30s {
+            0% { left: 0%; }
+            100% { left: 0%; }
+        }
+
+        @keyframes label-10-move-30s {
+            0% { left: 50%; }
+            100% { left: 33.33%; } /* 10/30 for max: 30 */
+        }
+
+        @keyframes label-12-move-30s {
+            0% { left: 60%; }
+            100% { left: 40%; } /* 12/30 for max: 30 */
+        }
+
+        @keyframes label-20-move-30s {
+            0% { left: 100%; }
+            100% { left: 66.67%; } /* 20/30 for max: 30 */
+        }
+
+        @keyframes label-30-appear {
+            0% { opacity: 0; left: 100%; }
+            100% { opacity: 1; left: 100%; } /* 30/30 for max: 30 */
+        }
+
+        /* Extend for further labels */
+        @keyframes label-0-move-40s {
+            0% { left: 0%; }
+            100% { left: 0%; }
+        }
+
+        @keyframes label-10-move-40s {
+            0% { left: 33.33%; }
+            100% { left: 25%; } /* 10/40 */
+        }
+
+        @keyframes label-12-move-40s {
+            0% { left: 40%; }
+            100% { left: 30%; } /* 12/40 */
+        }
+
+        @keyframes label-20-move-40s {
+            0% { left: 66.67%; }
+            100% { left: 50%; } /* 20/40 */
+        }
+
+        @keyframes label-30-move-40s {
+            0% { left: 100%; }
+            100% { left: 75%; } /* 30/40 */
+        }
+
+        @keyframes label-40-appear {
+            0% { opacity: 0; left: 100%; }
+            100% { opacity: 1; left: 100%; } /* 40/40 */
+        }
+
+        /* Apply animations at specific times */
+        .label-12, .tick-12 {
+            animation: label-12-appear 1s linear 10s forwards;
+        }
+
+        .label-12 {
+            animation: label-12-appear 1s linear 10s forwards,
+                       label-12-move 1s linear 15s forwards,
+                       label-12-move-15s 1s linear 15s forwards,
+                       label-12-move-30s 1s linear 30s forwards,
+                       label-12-move-40s 1s linear 40s forwards;
+        }
+
+        .tick-12 {
+            animation: label-12-appear 1s linear 10s forwards,
+                       label-12-move 1s linear 15s forwards,
+                       label-12-move-15s 1s linear 15s forwards,
+                       label-12-move-30s 1s linear 30s forwards,
+                       label-12-move-40s 1s linear 40s forwards;
+        }
+
+        .label-2, .tick-2,
+        .label-4, .tick-4,
+        .label-6, .tick-6,
+        .label-8, .tick-8 {
+            animation: label-2-4-6-8-fade 1s linear 15s forwards;
+        }
+
+        .label-0 {
+            animation: label-0-move-15s 1s linear 15s forwards,
+                       label-0-move-30s 1s linear 30s forwards,
+                       label-0-move-40s 1s linear 40s forwards;
+        }
+
+        .tick-0 {
+            animation: label-0-move-15s 1s linear 15s forwards,
+                       label-0-move-30s 1s linear 30s forwards,
+                       label-0-move-40s 1s linear 40s forwards;
+        }
+
+        .label-10 {
+            animation: label-10-move-15s 1s linear 15s forwards,
+                       label-10-move-30s 1s linear 30s forwards,
+                       label-10-move-40s 1s linear 40s forwards;
+        }
+
+        .tick-10 {
+            animation: label-10-move-15s 1s linear 15s forwards,
+                       label-10-move-30s 1s linear 30s forwards,
+                       label-10-move-40s 1s linear 40s forwards;
+        }
+
+        .label-20, .tick-20 {
+            animation: label-20-appear 1s linear 20s forwards,
+                       label-20-move-30s 1s linear 30s forwards,
+                       label-20-move-40s 1s linear 40s forwards;
+        }
+
+        .label-30, .tick-30 {
+            animation: label-30-appear 1s linear 30s forwards,
+                       label-30-move-40s 1s linear 40s forwards;
+        }
+
+        .label-40, .tick-40 {
+            animation: label-40-appear 1s linear 40s forwards;
+        }
+
+        .label-50, .tick-50 {
+            animation: label-40-appear 1s linear 50s forwards;
+        }
+
+        .label-60, .tick-60 {
+            animation: label-40-appear 1s linear 60s forwards;
+        }
+
+        .label-70, .tick-70 {
+            animation: label-40-appear 1s linear 70s forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="axis-container">
+        <div class="axis"></div>
+        <div class="tick tick-0"></div>
+        <div class="label label-0">0s</div>
+        <div class="tick tick-2"></div>
+        <div class="label label-2">2s</div>
+        <div class="tick tick-4"></div>
+        <div class="label label-4">4s</div>
+        <div class="tick tick-6"></div>
+        <div class="label label-6">6s</div>
+        <div class="tick tick-8"></div>
+        <div class="label label-8">8s</div>
+        <div class="tick tick-10"></div>
+        <div class="label label-10">10s</div>
+        <div class="tick tick-12"></div>
+        <div class="label label-12">12s</div>
+        <div class="tick tick-20"></div>
+        <div class="label label-20">20s</div>
+        <div class="tick tick-30"></div>
+        <div class="label label-30">30s</div>
+        <div class="tick tick-40"></div>
+        <div class="label label-40">40s</div>
+        <div class="tick tick-50"></div>
+        <div class="label label-50">50s</div>
+        <div class="tick tick-60"></div>
+        <div class="label label-60">60s</div>
+        <div class="tick tick-70"></div>
+        <div class="label label-70">70s</div>
+    </div>
+</body>
+</html>

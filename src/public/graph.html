@@ -1,0 +1,122 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Dynamic X-Axis Labels</title>
+    </head>
+    <body>
+        <canvas id="myCanvas" width="400" height="200" style="border:1px solid #000;"></canvas>
+        <script>
+            const canvas = document.getElementById('myCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const labelY = height - 10; // Position for labels below the axis
+            const axisY = height - 30; // Position for the horizontal axis line
+
+            let start_time = performance.now();
+            let current_t = 0;
+            let labels = [0, 2, 4, 6, 8, 10, 12];
+            let current_max = 10;
+            let transition_start = -1;
+            let transition_duration = 1; // seconds for transition
+            let from_max = 10;
+            let old_labels = [0, 2, 4, 6, 8, 10, 12];
+
+            function arraysEqual(a, b) {
+                if (a.length !== b.length) return false;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] !== b[i]) return false;
+                }
+                return true;
+            }
+
+            function getTarget(t) {
+                if (t < 10) {
+                    return {labels: [0, 2, 4, 6, 8, 10], max: 10};
+                } else if (t < 15) {
+                    return {labels: [0, 2, 4, 6, 8, 10, 12], max: 12};
+                } else if (t < 20) {
+                    return {labels: [0, 10, 20], max: 12};
+                } else if (t < 30) {
+                    return {labels: [0, 10, 20], max: 20};
+                } else if (t < 40) {
+                    return {labels: [0, 10, 20, 30], max: 30};
+                } else if (t < 50) {
+                    return {labels: [0, 10, 20, 30, 40], max: 40};
+                } else if (t < 60) {
+                    return {labels: [0, 10, 20, 30, 40, 50], max: 50};
+                } else if (t < 70) {
+                    return {labels: [0, 10, 20, 30, 40, 50, 60], max: 60};
+                } else {
+                    return {labels: [0, 10, 20, 30, 40, 50, 60, 70], max: 70};
+                }
+            }
+
+            function animate() {
+                let now = performance.now();
+                current_t = (now - start_time) / 1000;
+
+                let desired = getTarget(current_t);
+
+                if (!arraysEqual(desired.labels, labels) || desired.max !== current_max) {
+                    from_max = current_max;
+                    old_labels = labels.slice();
+                    labels = desired.labels.slice();
+                    current_max = desired.max;
+                    transition_start = current_t;
+                }
+
+                let fraction = 0;
+                if (transition_start !== -1) {
+                    let elapsed = current_t - transition_start;
+                    fraction = Math.min(1, elapsed / transition_duration);
+                    if (fraction >= 1) {
+                        transition_start = -1;
+                    }
+                }
+
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw the x-axis line
+                ctx.beginPath();
+                ctx.moveTo(0, axisY);
+                ctx.lineTo(width, axisY);
+                ctx.stroke();
+
+                // Draw labels and ticks
+                labels.forEach(value => {
+                    let new_pos = (value / current_max) * width;
+                    let old_pos;
+                    if (old_labels.includes(value)) {
+                        old_pos = (value / from_max) * width;
+                    } else {
+                        old_pos = width; // New labels start at right
+                    }
+                    let effective_pos = old_pos + (new_pos - old_pos) * fraction;
+
+                    // Opacity for new labels
+                    let opacity = old_labels.includes(value) ? 1 : fraction;
+
+                    // Draw tick
+                    ctx.globalAlpha = opacity;
+                    ctx.beginPath();
+                    ctx.moveTo(effective_pos, axisY - 5);
+                    ctx.lineTo(effective_pos, axisY + 5);
+                    ctx.stroke();
+
+                    // Draw label
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(value + 's', effective_pos, labelY);
+                    ctx.globalAlpha = 1;
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        </script>
+    </body>
+    </html>

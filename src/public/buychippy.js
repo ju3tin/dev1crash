@@ -1,0 +1,93 @@
+const connectButton = document.getElementById('connectButton');
+        const buyButton = document.getElementById('buyButton');
+        const amountInput = document.getElementById('amount');
+        const walletAddressP = document.getElementById('walletAddress');
+        const statusP = document.getElementById('status');
+
+        const solMint = 'So11111111111111111111111111111111111111112';
+        const chippyMint = 'Bz7Nx1F3Mti1BVS7ZAVDLSKGEaejufxvX2DPdjpf8PqT';
+        const jupiterQuoteApi = 'https://quote-api.jup.ag/v6/quote';
+        const jupiterSwapApi = 'https://quote-api.jup.ag/v6/swap';
+        const slippageBps = 50; // 0.5% slippage
+        const connection = new solanaWeb3.Connection('https://mainnet.helius-rpc.com/?api-key=4859defa-46ae-4d87-abe4-1355598c6d76', 'confirmed');
+
+        let walletPublicKey = null;
+
+        async function connectWallet() {
+            if (!window.solana) {
+                statusP.textContent = 'Solana wallet not found. Please install Phantom or another compatible wallet.';
+                return;
+            }
+            try {
+                const response = await window.solana.connect();
+                walletPublicKey = new solanaWeb3.PublicKey(response.publicKey.toString());
+                walletAddressP.textContent = `Connected: ${walletPublicKey.toBase58()}`;
+                connectButton.textContent = 'Wallet Connected';
+                connectButton.disabled = true;
+                buyButton.disabled = false;
+            } catch (error) {
+                statusP.textContent = 'Wallet connection failed: ' + error.message;
+            }
+        }
+
+        async function buyChippy() {
+            if (!walletPublicKey) {
+                statusP.textContent = 'Please connect wallet first.';
+                return;
+            }
+            const amountSol = parseFloat(amountInput.value);
+            if (isNaN(amountSol) || amountSol <= 0) {
+                statusP.textContent = 'Invalid amount.';
+                return;
+            }
+            const amountLamports = amountSol * 1e9; // SOL has 9 decimals
+
+            statusP.textContent = 'Fetching quote...';
+            try {
+                // Get quote
+                const quoteResponse = await fetch(`${jupiterQuoteApi}?inputMint=${solMint}&outputMint=${chippyMint}&amount=${amountLamports}&slippageBps=${slippageBps}`);
+                const quote = await quoteResponse.json();
+                if (quote.error) {
+                    throw new Error(quote.error.message || 'Failed to get quote');
+                }
+
+                // Prepare swap request
+                const swapRequest = {
+                    quoteResponse: quote,
+                    userPublicKey: walletPublicKey.toBase58(),
+                    wrapAndUnwrapSol: true,
+                    computeUnitPriceMicroLamports: 10000 // Optional priority fee
+                };
+
+                statusP.textContent = 'Preparing transaction...';
+                const swapResponse = await fetch(jupiterSwapApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(swapRequest)
+                });
+                const { swapTransaction } = await swapResponse.json();
+
+                // Deserialize transaction
+                const transactionBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
+                const transaction = solanaWeb3.VersionedTransaction.deserialize(transactionBuf);
+
+                statusP.textContent = 'Signing transaction...';
+                // Sign with wallet
+                const signedTransaction = await window.solana.signTransaction(transaction);
+
+                statusP.textContent = 'Sending transaction...';
+                // Send transaction
+                const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+
+                statusP.textContent = 'Confirming transaction...';
+                await connection.confirmTransaction(signature, 'confirmed');
+
+                statusP.textContent = `Success! Transaction signature: ${signature}`;
+            } catch (error) {
+                statusP.textContent = 'Error: ' + error.message;
+                console.error(error);
+            }
+        }
+
+        connectButton.addEventListener('click', connectWallet);
+        buyButton.addEventListener('click', buyChippy);

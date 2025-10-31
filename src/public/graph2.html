@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bezier Curve with Dynamic Y-Time Labels</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        svg { border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h3>Bezier Curve: Y-Axis Time Labels Animation</h3>
+    <svg width="400" height="300"></svg>
+
+    <script>
+        // SVG Setup
+        const svg = d3.select("svg");
+        const width = +svg.attr("width");
+        const height = +svg.attr("height");
+        const margin = { top: 20, right: 40, bottom: 40, left: 60 };
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
+
+        const g = svg.append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Initial Y-Scale (Time: 0-8)
+        let y = d3.scaleLinear()
+            .domain([0, 8])
+            .range([innerHeight, 0]);
+
+        // X-Scale (dummy data points for Bezier)
+        const x = d3.scaleLinear()
+            .domain([0, 1])
+            .range([0, innerWidth]);
+
+        // Y-Axis with Labels
+        const yAxis = g.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(y).tickValues(d3.range(0, 9)));  // Labels: 0-8
+
+        // Bezier Curve Path Generator
+        const line = d3.line()
+            .x(d => x(d.t))
+            .y(d => y(d.value))
+            .curve(d3.curveBasis);  // Smooth Bezier
+
+        // Sample Data (progress curve over time)
+        const data = d3.range(0, 1, 0.01).map(t => ({
+            t,
+            value: 4 + 3 * Math.sin(t * Math.PI * 4)  // Wavy Bezier example
+        }));
+
+        // Draw Curve
+        const path = g.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 2)
+            .attr("d", line);
+
+        // Animation Sequence (Phases)
+        function phase1() {
+            console.log("Phase 1: Show 0-8");
+            y.domain([0, 8]);
+            yAxis.transition().duration(500)
+                .call(d3.axisLeft(y).tickValues(d3.range(0, 9)));
+            path.transition().duration(500).attr("d", line);
+            setTimeout(phase2, 3000);
+        }
+
+        function phase2() {
+            console.log("Phase 2: Move labels LEFT (shift domain -2)");
+            // Shift domain left: [0,8] -> [-2,6] (labels slide left)
+            y.domain([-2, 6]);
+            yAxis.transition().duration(2000)
+                .call(d3.axisLeft(y).tickValues([-2,-1,0,1,2,3,4,5,6]));
+            path.transition().duration(2000).attr("d", line);
+            setTimeout(phase3, 2000);
+        }
+
+        function phase3() {
+            console.log("Phase 3: Remove labels, show 0-10");
+            y.domain([0, 10]);
+            // Remove intermediates: Only 0,5,10
+            yAxis.transition().duration(1000)
+                .call(d3.axisLeft(y).tickValues([0, 5, 10]));
+            path.transition().duration(1000).attr("d", line);
+            setTimeout(phase1, 3000);  // Loop back
+        }
+
+        // Start Animation
+        phase1();
+    </script>
+</body>
+</html>

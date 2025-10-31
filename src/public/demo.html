@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/js/math.js"></script>
+        <script src="/js/bezier.js"></script>
+    </head>
+	<body  onload="Init()">
+		<canvas style="float:left;" id="canvas" width="600" height="600"></canvas>
+	</body>
+	<div style="float:left; padding:25px;">
+		<p>Drag points to re-arrange, Shift + Drag to erase them</p>
+		<button onclick="SwapTrace()">Swap Trace (Bezier Curve)</button>
+		<button onclick="SwapFinal()">Swap Bezier Lines</button>
+		<button onclick="SwapExample()">Swap Animation Example</button>
+		<p id="fps">FPS: xx</p>
+		<p id="points">Points: xx</p>
+	</div>
+	<img src="wing.gif" style="display:none;" id="image">
+</html>
