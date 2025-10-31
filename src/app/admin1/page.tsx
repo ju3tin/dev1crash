@@ -15,8 +15,10 @@ export default function AdminPage() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [game, setGame] = useState<any>(null);
+  const [userPda, setUserPda] = useState<PublicKey | null>(null);
 
-  const configPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
+  const configPda = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
+  const gamePda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('game_state'), wallet.toBytes()], program.programId)[0] : null;
 
   useEffect(() => {
     if (!program || !wallet || !connected) return;
@@ -33,10 +35,24 @@ export default function AdminPage() {
   };
 
   const loadActiveGame = async () => {
-    if (!program) return;
-    const games = await program.account.gameState.all();
-    const active = games.find(g => g.account.active);
-    setGame(active?.account || null);
+    if (!program || !gamePda || !wallet) return;
+    try {
+      const data = await program.account.gameState.fetch(gamePda);
+      if (data.active) {
+        setGame(data);
+        const [betPda] = PublicKey.findProgramAddressSync(
+          [Buffer.from('bet'), wallet.toBytes(), gamePda.toBytes()],
+          program.programId
+        );
+        const bet = await program.account.bet.fetch(betPda);
+        const [up] = PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], program.programId);
+        setUserPda(up);
+      } else {
+        setGame(null);
+      }
+    } catch {
+      setGame(null);
+    }
   };
 
   const updateAdmin = async () => {
@@ -56,14 +72,16 @@ export default function AdminPage() {
   };
 
   const resolveGame = async () => {
-    if (!program || !wallet || !game || !configPda) return;
-    const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), wallet.toBytes()], program.programId);
-    const [userPda] = PublicKey.findProgramAddressSync([Buffer.from('user'), wallet.toBytes()], program.programId);
+    if (!program || !wallet || !game || !configPda || !userPda) return;
+    const [betPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from('bet'), wallet.toBytes(), gamePda!.toBytes()],
+      program.programId
+    );
     setLoading(true);
     try {
       const sig = await program.methods.resolveGame(crashed)
         .accounts({
-          gameState: game.gameId,
+          gameState: gamePda!,
           bet: betPda,
           userBalance: userPda,
           config: configPda,
@@ -71,7 +89,7 @@ export default function AdminPage() {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      setStatus(crashed ? 'Game crashed!' : 'Players won!');
+      setStatus(crashed ? 'Crashed!' : 'Players won!');
       loadActiveGame();
     } catch (e: any) {
       setStatus(`Error: ${e.message}`);
@@ -98,7 +116,7 @@ export default function AdminPage() {
 
         {game && (
           <div className="mt-6 p-4 bg-white/10 rounded">
-            <p>Active Game: {game.gameName}</p>
+            <p>Active: {game.gameName} @ {(game.multiplier / 100).toFixed(2)}x</p>
             <label className="flex items-center gap-2 mt-2">
               <input type="checkbox" checked={crashed} onChange={e => setCrashed(e.target.checked)} />
               <span>Crash Game?</span>
