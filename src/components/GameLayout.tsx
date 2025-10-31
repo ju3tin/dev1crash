@@ -1,6 +1,6 @@
 import { PropsWithChildren }from 'react';
 
-import styles from '../styles/GameLayout.module.css';
+import styles from '@/styles/GameLayout.module.css';
 
 export type GameLayoutProps = PropsWithChildren;
 

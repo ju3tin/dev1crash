@@ -10,8 +10,8 @@ import {
 import { clusterApiUrl } from '@solana/web3.js';
 import '@solana/wallet-adapter-react-ui/styles.css';
 import { Wallet } from 'lucide-react';
-import { setWalletAddress } from '../store/walletStore';
-import { useWalletStore } from '../store/walletStore';
+import { setWalletAddress } from '@/store/walletStore';
+import { useWalletStore } from '@/store/walletStore';
 function CustomWalletButton() {
     return (
         <WalletMultiButton style={{ fontSize: '14px' }} className="custom-wallet-button">

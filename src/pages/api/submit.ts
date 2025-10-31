@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import  connectToDatabase from '../../lib/mondb1';
-import { TweetSubmission } from '../../models/TweetSubmission';
+import  connectToDatabase from '@/lib/mondb1';
+import { TweetSubmission } from '@/models/TweetSubmission';
 
 type Data = {
   message: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import styles from '../styles/components/CrashList.module.css';
+import styles from '@/styles/components/CrashList.module.css';
 
 import {
 	HoverCard,
@@ -8,7 +8,7 @@ import {
 	HoverCardTrigger,
 } from "@/components/ui/hover-card";
 
-import { useGameStore, CrashedGame } from '../store/gameStore';
+import { useGameStore, CrashedGame } from '@/store/gameStore';
 
 export type CrashListProps = {}
 

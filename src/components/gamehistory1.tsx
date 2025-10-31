@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { usePressedStore } from '../store/ispressed';
-import { CrashGameData } from '../store/gameStore3';
+import { usePressedStore } from '@/store/ispressed';
+import { CrashGameData } from '@/store/gameStore3';
 
 interface GameHistoryProps {
   dude45: boolean;

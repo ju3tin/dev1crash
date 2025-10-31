@@ -9,17 +9,17 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-//import { useWalletContext } from "../../src/providers/WalletContextProvider";
+//import { useWalletContext } from "@/src/providers/WalletContextProvider";
 import { Checkbox } from "@nextui-org/checkbox";
-import { useGameStore, GameState } from "../store/gameStore";
-import { useEffectEvent } from "../hooks/useEffectEvent";
-import useWalletAuth from "../hooks/useWalletAuth";
+import { useGameStore, GameState } from "@/store/gameStore";
+import { useEffectEvent } from "@/hooks/useEffectEvent";
+import useWalletAuth from "@/hooks/useWalletAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { currencies } from "../lib/currencies";
+import { currencies } from "@/lib/currencies";
 import CurrencyList from "./CurrencyList";
-import styles from "../styles/components/GameControls.module.css";
+import styles from "@/styles/components/GameControls.module.css";
 
 export default function GameControls() {
 	const walletAuth = useWalletAuth();

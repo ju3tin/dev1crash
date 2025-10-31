@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 //import { BrowserProvider } from 'ethers';
 //import { SiweMessage } from 'siwe';
 
-import { useGameStore, GameState } from '../store/gameStore1';
+import { useGameStore, GameState } from '@/store/gameStore1';
 
 export type LoginParams = {
 	message: string;

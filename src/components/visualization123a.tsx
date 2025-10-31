@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-//import { useGameStore, GameState } from "../store/gameStore";
+//import { useGameStore, GameState } from "@/store/gameStore";
 import { controlPoints } from "./controlPoints";
 import { color } from "framer-motion";
 import Image from "next/image";

@@ -21,15 +21,15 @@ import {
 } from "@/components/uis/card";
 import { toast } from "sonner";
 import { Checkbox } from "@nextui-org/checkbox";
-import { useGameStore, GameState } from "../store/gameStore2";
-import { useEffectEvent } from "../hooks/useEffectEvent";
+import { useGameStore, GameState } from "@/store/gameStore2";
+import { useEffectEvent } from "@/hooks/useEffectEvent";
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { Input } from "@/components/uis/input";	
 import { Button } from "@/components/uis/button";
 import { Label } from "@/components/uis/label";
-import { currencies } from "../lib/currencies";
+import { currencies } from "@/lib/currencies";
 import CurrencyList from "./CurrencyList";
-import styles from "../styles/components/GameControls2.module.css";
+import styles from "@/styles/components/GameControls2.module.css";
 import WalletLoginOverlay from './WalletLoginOverlay';
 
 export default function GameControls() {

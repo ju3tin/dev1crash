@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, ExternalLink } from "lucide-react"
 import CoinMarketCapWidget from "@/components/Coinmaket"
 // Remove the direct import and add proper typing
-// import idl from "../idl.json"
+// import idl from "@/idl.json"
 
 // Define the IDL structure properly
 interface StakingProgramIDL {

@@ -20,11 +20,11 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 
-import { currencyById } from '../lib/currencies';
+import { currencyById } from '@/lib/currencies';
 
-import { Bet, useGameStore } from '../store/gameStore';
+import { Bet, useGameStore } from '@/store/gameStore';
 
-import { shortenWallet } from '../lib/utils4';
+import { shortenWallet } from '@/lib/utils4';
 
 export type BetListProps = {
 }

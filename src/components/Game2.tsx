@@ -3,11 +3,11 @@
 import * as THREE from 'three';
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 
-import { useGameStore, GameState } from '../store/gameStore2';
+import { useGameStore, GameState } from '@/store/gameStore2';
 import { toast } from 'react-toastify'; // Ensure you have the toast library
 
 
-import styles from '../styles/Game1.module.css';
+import styles from '@/styles/Game1.module.css';
 
 const height = 2000;
 const coeffB = 0.5;

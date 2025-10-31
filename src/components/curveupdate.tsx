@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import curvePoints from '../data/points';
+import curvePoints from '@/data/points';
 
 type Point = { x: number; y: number };
 

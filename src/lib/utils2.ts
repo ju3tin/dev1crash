@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import { GameStatus } from '../store/gameStore2';
+import { GameStatus } from '@/store/gameStore2';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

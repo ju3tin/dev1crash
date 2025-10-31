@@ -1,6 +1,6 @@
 // src/components/TweetForm.tsx
 import React, { useState, useEffect } from 'react';
-import { useSolana } from '../hooks/useSolana';
+import { useSolana } from '@/hooks/useSolana';
 import axios from 'axios';
 
 export const TweetForm = () => {

@@ -32,11 +32,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import { currencyById } from '../lib/currencies';
+import { currencyById } from '@/lib/currencies';
 
-import { Bet, useGameStore } from '../store/gameStore1';
+import { Bet, useGameStore } from '@/store/gameStore1';
 
-import { shortenWallet } from '../lib/utils4';
+import { shortenWallet } from '@/lib/utils4';
 
 export type BetListProps = {
 }

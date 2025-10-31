@@ -15,7 +15,7 @@ import {
   SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { Wallet } from "lucide-react";
-import { useWalletStore } from "../store/walletstore1";
+import { useWalletStore } from "@/store/walletstore1";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 function CustomWalletButton() {

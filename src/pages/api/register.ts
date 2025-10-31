@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
-import { connectDB } from "../../lib/mongodb2";
-import User from "../../models/user";
+import { connectDB } from "@/lib/mongodb2";
+import User from "@/models/user";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") return res.status(405).end();

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { crashGame } from "../../../lib/gameState";
+import { crashGame } from "@/lib/gameState";
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   crashGame();

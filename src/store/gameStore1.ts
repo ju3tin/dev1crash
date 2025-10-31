@@ -8,12 +8,12 @@ import { jwtDecode } from 'jwt-decode';
 
 import { create } from "zustand";
 
-//import {address1a} from "../../src/components/WalletConnection"
-//import { useWalletContext } from "../../src/providers/WalletContextProvider";
+//import {address1a} from "@/src/components/WalletConnection"
+//import { useWalletContext } from "@/src/providers/WalletContextProvider";
 
 //import Cors from "cors";
 
-import { elapsedToMultiplier } from '../lib/utils3';
+import { elapsedToMultiplier } from '@/lib/utils3';
 import { Wallet } from "lucide-react";
 
 import { address1a } from "@/components/WalletConnection";

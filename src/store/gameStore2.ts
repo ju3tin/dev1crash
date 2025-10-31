@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 
 import { create } from "zustand";
 
-import { elapsedToMultiplier } from '../lib/utils1';
+import { elapsedToMultiplier } from '@/lib/utils1';
 
 export type GameStatus =
 	'Unknown'

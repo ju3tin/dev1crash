@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
-import Iconwallet from '../../images/crypto-wallet.svg';
+import Iconwallet from '@/images/crypto-wallet.svg';
 
 import WalletContextProvider from "@/providers/WalletContextProvider";
 import {

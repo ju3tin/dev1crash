@@ -9,8 +9,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
-import { currencies } from "../lib/currencies";
-import styles from "../styles/components/CurrencyList.module.css";
+import { currencies } from "@/lib/currencies";
+import styles from "@/styles/components/CurrencyList.module.css";
 
 export type CurrencyListProps = {
 	buttonPressCount: number;

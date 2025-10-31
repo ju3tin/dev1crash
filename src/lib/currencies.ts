@@ -1,9 +1,9 @@
 
 import { StaticImageData } from 'next/image';
 
-import ChippyIcon from '../images/currencies/31832.png';
-import SolanaIcon from '../images/currencies/sol.svg';
-import DemoIcon from '../images/currencies/demo.svg';
+import ChippyIcon from '@/images/currencies/31832.png';
+import SolanaIcon from '@/images/currencies/sol.svg';
+import DemoIcon from '@/images/currencies/demo.svg';
 
 export type CurrencyId = 'demo' | 'sol' | 'chp';
 

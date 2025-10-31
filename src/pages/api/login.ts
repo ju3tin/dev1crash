@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { connectDB } from "../../lib/mongodb2";
-import User from "../../models/user";
+import { connectDB } from "@/lib/mongodb2";
+import User from "@/models/user";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Send } from "lucide-react"
 import axios from "axios"
-import { useWalletStore } from "../store/walletstore1"
+import { useWalletStore } from "@/store/walletstore1"
 import { format, isValid } from "date-fns"
 import WalletLoginOverlay from "./WalletLoginOverlay"
 type ChatMessage = {
