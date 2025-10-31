@@ -13,13 +13,11 @@ export default function GamePage() {
   const [userBalance, setUserBalance] = useState<any>(null);
   const [gameState, setGameState] = useState<any>(null);
   const [amount, setAmount] = useState('');
-  const [multiplier, setMultiplier] = useState('2.0');
-  const [gameName, setGameName] = useState('Crash #1');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // PDAs — only when program and wallet exist
-  const configPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
+  // PDAs
+  const configPda = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
   const userPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], program.programId)[0] : null;
   const gamePda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('game_state'), wallet.toBytes()], program.programId)[0] : null;
 
@@ -69,7 +67,7 @@ export default function GamePage() {
     if (!program || !wallet || !userPda || !amount) return;
     const lamports = Math.floor(parseFloat(amount) * 1e9);
     if (lamports < 1000) {
-      setStatus('Minimum 0.000001 SOL');
+      setStatus('Min 0.000001 SOL');
       return;
     }
     setLoading(true);
@@ -78,53 +76,6 @@ export default function GamePage() {
         .accounts({ userBalance: userPda, user: wallet, systemProgram: SystemProgram.programId })
         .rpc();
       setStatus(`Deposited! Tx: ${sig.slice(0, 8)}...`);
-      setAmount('');
-      loadUserBalance();
-    } catch (e: any) {
-      setStatus(`Error: ${e.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createGame = async () => {
-    if (!program || !wallet || !gamePda || !configPda || !multiplier) return;
-    const mult = Math.floor(parseFloat(multiplier) * 100);
-    if (mult < 100 || mult > 10000) {
-      setStatus('Multiplier 1.0x - 100x');
-      return;
-    }
-    setLoading(true);
-    try {
-      const sig = await program.methods.createGame(new BN(mult), gameName)
-        .accounts({ gameState: gamePda, config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
-        .rpc();
-      setStatus(`Game created! Tx: ${sig.slice(0, 8)}...`);
-      loadActiveGame();
-    } catch (e: any) {
-      setStatus(`Error: ${e.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const placeBet = async () => {
-    if (!program || !wallet || !userPda || !gamePda || !configPda || !gameState || !amount) return;
-    const lamports = Math.floor(parseFloat(amount) * 1e9);
-    if (lamports < 1000) {
-      setStatus('Minimum bet 0.000001 SOL');
-      return;
-    }
-    const [betPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('bet'), wallet.toBytes(), gamePda.toBytes()],
-      program.programId
-    );
-    setLoading(true);
-    try {
-      const sig = await program.methods.placeBet(wallet, new BN(lamports))
-        .accounts({ bet: betPda, userBalance: userPda, gameState: gamePda, config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
-        .rpc();
-      setStatus(`Bet placed! Tx: ${sig.slice(0, 8)}...`);
       setAmount('');
       loadUserBalance();
     } catch (e: any) {
@@ -156,25 +107,22 @@ export default function GamePage() {
           <>
             <div className="bg-white/10 p-6 rounded-xl text-center mb-6">
               <p>Balance: {(userBalance.balance / 1e9).toFixed(6)} SOL</p>
-              {userBalance.hasActiveBet && <p className="text-yellow-300 mt-2">Active Bet: {(userBalance.activeBetAmount / 1e9).toFixed(6)} SOL</p>}
+              {userBalance.hasActiveBet && <p className="text-yellow-300 mt-2">Bet Active</p>}
             </div>
 
-            {!gameState ? (
+            {gameState ? (
               <div className="space-y-4">
-                <input placeholder="Multiplier (e.g. 2.0)" value={multiplier} onChange={e => setMultiplier(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-                <input placeholder="Game Name (max 32)" value={gameName} onChange={e => setGameName(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-                <button onClick={createGame} disabled={loading} className="w-full p-4 bg-purple-600 rounded-lg font-bold">
-                  {loading ? 'Creating...' : 'CREATE GAME'}
-                </button>
+                <p className="text-center text-green-400">
+                  Active: {gameState.gameName} @ {(gameState.multiplier / 100).toFixed(2)}x
+                </p>
+                {userBalance.hasActiveBet ? (
+                  <p className="text-center text-orange-400">Waiting for admin to resolve...</p>
+                ) : (
+                  <p className="text-center text-gray-400">Ask admin to place your bet</p>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
-                <p className="text-center text-green-400">Active: {gameState.gameName} @ {(gameState.multiplier / 100).toFixed(2)}x</p>
-                <input placeholder="Bet Amount (SOL)" value={amount} onChange={e => setAmount(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-                <button onClick={placeBet} disabled={loading || userBalance.hasActiveBet} className="w-full p-4 bg-red-600 rounded-lg font-bold">
-                  {loading ? 'Betting...' : userBalance.hasActiveBet ? 'BET ACTIVE' : 'PLACE BET'}
-                </button>
-              </div>
+              <p className="text-center text-gray-400">No active game. Ask admin to create one.</p>
             )}
 
             {status && <p className={`text-center mt-4 ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{status}</p>}

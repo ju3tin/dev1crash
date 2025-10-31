@@ -1,5 +1,10 @@
+"use client";
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+const WalletButton = dynamic(
+  () => import('@solana/wallet-adapter-react-ui').then(m => m.WalletMultiButton),
+  { ssr: false }
+);
 
 export default function Navbar() {
   return (
@@ -14,7 +19,7 @@ export default function Navbar() {
           <Link href="/history" className="text-white hover:text-purple-400">History</Link>
           <Link href="/faq" className="text-white hover:text-purple-400">FAQ</Link>
         </div>
-        <WalletMultiButton />
+        <WalletButton />
       </div>
     </nav>
   );
