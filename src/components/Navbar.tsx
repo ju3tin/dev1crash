@@ -1,12 +1,16 @@
-"use client";
-import dynamic from 'next/dynamic';
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-const WalletButton = dynamic(
-  () => import('@solana/wallet-adapter-react-ui').then(m => m.WalletMultiButton),
-  { ssr: false }
-);
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function Navbar() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <nav className="bg-black/50 backdrop-blur-md p-4 sticky top-0 z-50 border-b border-white/10">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -19,7 +23,7 @@ export default function Navbar() {
           <Link href="/history" className="text-white hover:text-purple-400">History</Link>
           <Link href="/faq" className="text-white hover:text-purple-400">FAQ</Link>
         </div>
-        <WalletButton />
+        {mounted && <WalletMultiButton />}
       </div>
     </nav>
   );

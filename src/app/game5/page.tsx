@@ -11,40 +11,55 @@ export default function GamePage() {
   const program = useProgram();
   const { publicKey: wallet, connected } = useWallet();
   const [userBalance, setUserBalance] = useState<any>(null);
-  const [gameState, setGameState] = useState<any>(null);
   const [amount, setAmount] = useState('');
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // PDAs
+  // PDAs — CORRECT
   const configPda = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId)[0] : null;
   const userPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], program.programId)[0] : null;
-  const gamePda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('game_state'), wallet.toBytes()], program.programId)[0] : null;
 
   useEffect(() => {
-    if (!program || !wallet || !connected) return;
-    loadUserBalance();
-    loadActiveGame();
-  }, [program, wallet, connected]);
+    if (!program || !wallet || !connected || !userPda) return;
+    checkAndLoadUserBalance();
+  }, [program, wallet, connected, userPda]);
 
-  const loadUserBalance = async () => {
+  const checkAndLoadUserBalance = async () => {
     if (!program || !userPda) return;
+
+    // Check if account exists
+    const accountInfo = await program.provider.connection.getAccountInfo(userPda);
+    if (!accountInfo) {
+      setUserBalance(null);
+      return;
+    }
+
+    // Check if account is owned by the program
+    if (accountInfo.owner.toBase58() !== program.programId.toBase58()) {
+      setUserBalance(null);
+      return;
+    }
+
+    // Check if account has minimum data (discriminator + at least some fields)
+    // Anchor accounts need at least 8 bytes for discriminator
+    if (accountInfo.data.length < 8) {
+      setUserBalance(null);
+      return;
+    }
+
     try {
       const data = await program.account.userBalance.fetch(userPda);
       setUserBalance(data);
-    } catch {
-      setUserBalance(null);
-    }
-  };
-
-  const loadActiveGame = async () => {
-    if (!program || !gamePda) return;
-    try {
-      const data = await program.account.gameState.fetch(gamePda);
-      if (data.active) setGameState(data);
-      else setGameState(null);
-    } catch {
-      setGameState(null);
+    } catch (err: any) {
+      console.error('Deserialize failed:', err);
+      // If account exists but can't be deserialized, treat as non-existent
+      // This handles corrupted or uninitialized accounts
+      if (err.code === 3003 || err.message?.includes('AccountDidNotDeserialize') || err.message?.includes('deserialize')) {
+        setUserBalance(null);
+        setStatus('Account exists but needs initialization. Please deposit to initialize.');
+      } else {
+        setUserBalance(null);
+      }
     }
   };
 
@@ -52,7 +67,8 @@ export default function GamePage() {
     if (!program || !wallet || !configPda) return;
     setLoading(true);
     try {
-      const sig = await program.methods.initialize(wallet)
+      const sig = await program.methods
+        .initialize(wallet)
         .accounts({ config: configPda, signer: wallet, systemProgram: SystemProgram.programId })
         .rpc();
       setStatus(`Initialized! Tx: ${sig.slice(0, 8)}...`);
@@ -72,14 +88,52 @@ export default function GamePage() {
     }
     setLoading(true);
     try {
-      const sig = await program.methods.deposit(new BN(lamports))
+      // Check if account exists and can be deserialized before deposit
+      const accountInfo = await program.provider.connection.getAccountInfo(userPda);
+      let accountCorrupted = false;
+      
+      if (accountInfo) {
+        try {
+          // Try to fetch to see if it's valid
+          await program.account.userBalance.fetch(userPda);
+        } catch (fetchErr: any) {
+          // Account exists but can't be deserialized
+          if (fetchErr.code === 3003 || fetchErr.message?.includes('AccountDidNotDeserialize')) {
+            accountCorrupted = true;
+            console.warn('Account exists but invalid, attempting deposit...');
+            // Note: init_if_needed won't help if account exists but is corrupted
+            // Anchor validates account structure before instruction execution
+          }
+        }
+      }
+
+      if (accountCorrupted) {
+        setStatus('Error: Account exists but cannot be read. The account may need to be closed and recreated. Contact admin for assistance.');
+        setLoading(false);
+        return;
+      }
+
+      const sig = await program.methods
+        .deposit(new BN(lamports))
         .accounts({ userBalance: userPda, user: wallet, systemProgram: SystemProgram.programId })
         .rpc();
       setStatus(`Deposited! Tx: ${sig.slice(0, 8)}...`);
       setAmount('');
-      loadUserBalance();
+      setTimeout(checkAndLoadUserBalance, 3000); // Wait for account creation
     } catch (e: any) {
-      setStatus(`Error: ${e.message}`);
+      console.error('Deposit error:', e);
+      // Check for deserialization error
+      const errorCode = e.error?.code || e.code;
+      const errorMessage = e.message || e.toString();
+      
+      if (errorCode === 3003 || errorMessage?.includes('AccountDidNotDeserialize') || errorMessage?.includes('Failed to deserialize')) {
+        setStatus('Error: Account exists but is corrupted. The account needs to be closed and recreated. Please contact an admin or use a different wallet.');
+      } else if (errorMessage?.includes('0x1')) {
+        // Insufficient funds error
+        setStatus('Error: Insufficient SOL balance in wallet.');
+      } else {
+        setStatus(`Error: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -95,38 +149,46 @@ export default function GamePage() {
           <p className="text-center text-yellow-300">Connect wallet</p>
         ) : !userBalance ? (
           <div className="space-y-4">
-            <button onClick={initialize} disabled={loading} className="w-full p-4 bg-purple-700 rounded-lg font-bold">
-              {loading ? 'Initializing...' : 'INITIALIZE'}
+            <button
+              onClick={initialize}
+              disabled={loading}
+              className="w-full p-4 bg-purple-700 rounded-lg font-bold hover:bg-purple-800 transition"
+            >
+              {loading ? 'Initializing...' : 'INITIALIZE GAME'}
             </button>
-            <input placeholder="Amount (SOL)" value={amount} onChange={e => setAmount(e.target.value)} className="w-full p-3 bg-white/10 rounded" />
-            <button onClick={deposit} disabled={loading} className="w-full p-4 bg-green-600 rounded-lg font-bold">
+
+            <input
+              type="number"
+              placeholder="Amount (SOL)"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full p-3 bg-white/10 rounded text-white placeholder-gray-400"
+              step="0.000001"
+              min="0.000001"
+            />
+
+            <button
+              onClick={deposit}
+              disabled={loading || !amount}
+              className="w-full p-4 bg-green-600 rounded-lg font-bold hover:bg-green-700 transition disabled:opacity-50"
+            >
               {loading ? 'Depositing...' : 'DEPOSIT'}
             </button>
           </div>
         ) : (
-          <>
-            <div className="bg-white/10 p-6 rounded-xl text-center mb-6">
-              <p>Balance: {(userBalance.balance / 1e9).toFixed(6)} SOL</p>
-              {userBalance.hasActiveBet && <p className="text-yellow-300 mt-2">Bet Active</p>}
-            </div>
-
-            {gameState ? (
-              <div className="space-y-4">
-                <p className="text-center text-green-400">
-                  Active: {gameState.gameName} @ {(gameState.multiplier / 100).toFixed(2)}x
-                </p>
-                {userBalance.hasActiveBet ? (
-                  <p className="text-center text-orange-400">Waiting for admin to resolve...</p>
-                ) : (
-                  <p className="text-center text-gray-400">Ask admin to place your bet</p>
-                )}
-              </div>
-            ) : (
-              <p className="text-center text-gray-400">No active game. Ask admin to create one.</p>
+          <div className="bg-white/10 p-6 rounded-xl text-center">
+            <p className="text-2xl font-bold">Balance: {(userBalance.balance / 1e9).toFixed(6)} SOL</p>
+            {userBalance.hasActiveBet && (
+              <p className="text-yellow-300 mt-2">Bet Active: {(userBalance.activeBetAmount / 1e9).toFixed(6)} SOL</p>
             )}
+            <p className="text-green-400 mt-4">Ready to play! Ask admin to create a game.</p>
+          </div>
+        )}
 
-            {status && <p className={`text-center mt-4 ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>{status}</p>}
-          </>
+        {status && (
+          <p className={`text-center mt-6 text-lg ${status.includes('Error') ? 'text-red-400' : 'text-green-400'}`}>
+            {status}
+          </p>
         )}
       </div>
     </>
