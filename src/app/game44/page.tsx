@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useProgram } from '@/lib/anchor5';
+import { useProgram } from '@/lib/anchor6';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
@@ -9,10 +9,10 @@ import Navbar from '@/components/Navbar';
 import { motion } from 'framer-motion';
 import { 
   AlertCircle, Trophy, Zap, DollarSign, Users, Clock, X, 
-  Wallet, Send, ArrowDown, ArrowUp, RefreshCw 
+  Wallet, Send, ArrowDown, ArrowUp, RefreshCw, CheckCircle 
 } from 'lucide-react';
 
-const PROGRAM_ID = new PublicKey("HVtr9Fs4G6qB5ACNgT4sbD7S9886M9rrJDmCHGDDvUit");
+const PROGRAM_ID = new PublicKey("HT4dGgbZewPifdZfMpva24szn3QcwJSsRxTuHcsZF52F");
 
 export default function GamePage() {
   const program = useProgram();
@@ -25,6 +25,7 @@ export default function GamePage() {
   const [allGames, setAllGames] = useState<any[]>([]);
   const [currentGame, setCurrentGame] = useState<any>(null);
   const [activeBets, setActiveBets] = useState<any[]>([]);
+  const [myBets, setMyBets] = useState<any[]>([]); // NEW: Track user's claimable bets
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
@@ -95,13 +96,14 @@ export default function GamePage() {
     if (!program) return;
     try {
       const games = await program.account.gameState.all();
-      const sorted = games.map(g => g.account).sort((a, b) => Number(b.created_at - a.created_at));
+      const sorted = games.map(g => g.account).sort((a, b) => Number(b.createdAt.sub(a.createdAt)));
       setAllGames(sorted);
       const active = sorted.find(g => g.active);
       setCurrentGame(active || null);
       if (active) {
-        startAnimation(active.multiplier);
-        loadActiveBets(active.game_id);
+        startAnimation(Number(active.multiplier.toString()) / 100);
+        loadActiveBets(active.gameId);
+        if (wallet) loadMyBets(active.gameId);
       } else {
         setMultiplier(100);
         setIsAnimating(false);
@@ -116,9 +118,20 @@ export default function GamePage() {
     try {
       const bets = await program.account.bet.all();
       const active = bets
-        .filter(b => b.account.game_id.toBase58() === gameId.toBase58() && b.account.active)
+        .filter(b => b.account.gameId.toBase58() === gameId.toBase58() && b.account.active)
         .map(b => b.account);
       setActiveBets(active);
+    } catch {}
+  };
+
+  const loadMyBets = async (gameId: PublicKey) => {
+    if (!program || !wallet) return;
+    try {
+      const bets = await program.account.bet.all();
+      const my = bets
+        .filter(b => b.account.user.toBase58() === wallet.toBase58() && b.account.gameId.toBase58() === gameId.toBase58())
+        .map(b => b.account);
+      setMyBets(my);
     } catch {}
   };
 
@@ -127,10 +140,10 @@ export default function GamePage() {
     setIsAnimating(true);
     const interval = setInterval(() => {
       setMultiplier(prev => {
-        if (prev >= target) {
+        if (prev >= target * 100) {
           clearInterval(interval);
           setIsAnimating(false);
-          return target;
+          return target * 100;
         }
         return prev + Math.floor(Math.random() * 35);
       });
@@ -249,7 +262,7 @@ export default function GamePage() {
     }
   };
 
-  // === 6. PLACE BET ===
+  // === 6. PLACE BET (Admin places for any user) ===
   const placeBet = async () => {
     if (!program || !wallet || !currentGame || !betUser || !betAmt) return;
     const lamports = Math.floor(parseFloat(betAmt) * LAMPORTS_PER_SOL);
@@ -259,17 +272,18 @@ export default function GamePage() {
     try { userPubkey = new PublicKey(betUser); } catch { return showStatus('error', 'Invalid pubkey'); }
 
     const [userBalancePda] = PublicKey.findProgramAddressSync([Buffer.from('user_balance'), userPubkey.toBytes()], PROGRAM_ID);
-    const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), userPubkey.toBytes(), currentGame.game_id.toBytes()], PROGRAM_ID);
+    const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), userPubkey.toBytes(), currentGame.gameId.toBytes()], PROGRAM_ID);
 
     setLoading(true);
     try {
       const tx = await program.methods.placeBet(new BN(lamports))
-        .accounts({ bet: betPda, userBalance: userBalancePda, gameState: new PublicKey(currentGame.game_id), signer: wallet, systemProgram: SystemProgram.programId })
+        .accounts({ bet: betPda, userBalance: userBalancePda, gameState: currentGame.gameId, signer: wallet, systemProgram: SystemProgram.programId })
         .transaction();
       await sendTransaction(tx, connection);
       showStatus('success', 'Bet placed!');
       setBetUser(''); setBetAmt('');
-      loadActiveBets(currentGame.game_id);
+      loadActiveBets(currentGame.gameId);
+      if (wallet?.toBase58() === userPubkey.toBase58()) loadMyBets(currentGame.gameId);
     } catch (e: any) {
       showStatus('error', e.message);
     } finally {
@@ -277,24 +291,46 @@ export default function GamePage() {
     }
   };
 
-  // === 7. RESOLVE + AUTO-CREATE ===
+  // === 7. CLAIM PAYOUT ===
+  const claimPayout = async (bet: any) => {
+    if (!program || !wallet || !userPda) return;
+    const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), bet.user.toBytes(), bet.gameId.toBytes()], PROGRAM_ID);
+
+    setLoading(true);
+    try {
+      const tx = await program.methods.claimPayout()
+        .accounts({ bet: betPda, userBalance: userPda, signer: wallet })
+        .transaction();
+      await sendTransaction(tx, connection);
+      showStatus('success', 'Payout claimed!');
+      loadUserBalance();
+      loadMyBets(bet.gameId);
+    } catch (e: any) {
+      showStatus('error', e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // === 8. RESOLVE + AUTO-CREATE ===
   const resolveGame = async () => {
     if (!program || !wallet || !currentGame || !vaultPda) return;
     setLoading(true);
     setIsAnimating(false);
     try {
       const allBets = await program.account.bet.all();
-      const gameBets = allBets.filter(b => b.account.game_id.toBase58() === currentGame.game_id.toBase58());
+      const gameBets = allBets.filter(b => b.account.gameId.toBase58() === currentGame.gameId.toBase58());
 
       const remaining: any[] = [];
       for (const bet of gameBets) {
+        const betAcc = bet.publicKey;
         const userPda = PublicKey.findProgramAddressSync([Buffer.from('user_balance'), bet.account.user.toBytes()], PROGRAM_ID)[0];
-        remaining.push({ pubkey: bet.publicKey, isSigner: false, isWritable: true });
+        remaining.push({ pubkey: betAcc, isSigner: false, isWritable: true });
         remaining.push({ pubkey: userPda, isSigner: false, isWritable: true });
       }
 
       const tx = await program.methods.resolveGame(crashNow)
-        .accounts({ gameState: new PublicKey(currentGame.game_id), vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
+        .accounts({ gameState: currentGame.gameId, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
         .remainingAccounts(remaining)
         .transaction();
 
@@ -334,7 +370,7 @@ export default function GamePage() {
     }
   };
 
-  // === 8. ADMIN WITHDRAW ===
+  // === 9. ADMIN WITHDRAW ===
   const adminWithdraw = async () => {
     if (!program || !wallet || !configPda || !vaultPda || !adminWithdrawAmt) return;
     const lamports = Math.floor(parseFloat(adminWithdrawAmt) * LAMPORTS_PER_SOL);
@@ -342,7 +378,7 @@ export default function GamePage() {
     setLoading(true);
     try {
       const tx = await program.methods.adminWithdraw(new BN(lamports))
-        .accounts({ config: configPda, vault: vaultPda, signer: wallet })
+        .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
         .transaction();
       await sendTransaction(tx, connection);
       showStatus('success', 'Admin withdrawal complete!');
@@ -354,7 +390,7 @@ export default function GamePage() {
     }
   };
 
-  // === 9. ADMIN DEPOSIT BOUNTY ===
+  // === 10. ADMIN DEPOSIT BOUNTY ===
   const adminDepositBounty = async () => {
     if (!program || !wallet || !configPda || !vaultPda || !bountyAmt) return;
     const lamports = Math.floor(parseFloat(bountyAmt) * LAMPORTS_PER_SOL);
@@ -421,8 +457,8 @@ export default function GamePage() {
                 ) : (
                   <div className="space-y-6">
                     <div className="text-center">
-                      <p className="text-5xl font-black">{(userBalance.balance / LAMPORTS_PER_SOL).toFixed(6)} SOL</p>
-                      {userBalance.has_active_bet && <p className="text-orange-400 mt-2 flex items-center justify-center gap-2"><Zap /> BET ACTIVE</p>}
+                      <p className="text-5xl font-black">{(Number(userBalance.balance.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL</p>
+                      {userBalance.hasActiveBet && <p className="text-orange-400 mt-2 flex items-center justify-center gap-2"><Zap /> BET ACTIVE</p>}
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
@@ -451,6 +487,33 @@ export default function GamePage() {
                         </button>
                       </div>
                     </div>
+
+                    {/* MY BETS (CLAIMABLE) */}
+                    {myBets.length > 0 && (
+                      <div className="mt-6">
+                        <h3 className="text-xl font-bold mb-4">My Bets</h3>
+                        <div className="space-y-2">
+                          {myBets.map((bet, i) => (
+                            <div key={i} className="bg-white/10 p-3 rounded-xl flex justify-between items-center">
+                              <span>Amount: {(Number(bet.amount.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL</span>
+                              {bet.claimed ? (
+                                <CheckCircle className="w-5 h-5 text-green-400" />
+                              ) : bet.payoutAmount.gt(new BN(0)) ? (
+                                <button 
+                                  onClick={() => claimPayout(bet)} 
+                                  className="px-3 py-1 bg-green-600 rounded text-sm"
+                                  disabled={loading}
+                                >
+                                  Claim
+                                </button>
+                              ) : (
+                                <span className="text-orange-400">Active</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -462,13 +525,13 @@ export default function GamePage() {
                   animate={{ scale: 1, opacity: 1 }}
                   className="text-center"
                 >
-                  <div className={`text-9xl font-black transition-all ${isAnimating ? 'text-green-400' : 'text-yellow-400'} drop-shadow-lg`}>
+                  <div className={`text-9xl font-black transition-all ${isAnimating ? 'text-green-400' : currentGame.crashed ? 'text-red-400' : 'text-yellow-400'} drop-shadow-lg`}>
                     {(multiplier / 100).toFixed(2)}x
                   </div>
-                  <p className="text-3xl mt-3 font-bold">{currentGame.game_name}</p>
+                  <p className="text-3xl mt-3 font-bold">{currentGame.gameName}</p>
                   <div className="flex justify-center gap-6 mt-6 text-lg">
                     <span className="flex items-center gap-2"><Users /> {activeBets.length} bets</span>
-                    <span className="flex items-center gap-2"><DollarSign /> {(currentGame.total_volume / LAMPORTS_PER_SOL).toFixed(3)} SOL</span>
+                    <span className="flex items-center gap-2"><DollarSign /> {(Number(currentGame.totalVolume.toString()) / LAMPORTS_PER_SOL).toFixed(3)} SOL</span>
                   </div>
                 </motion.div>
               )}
@@ -561,7 +624,7 @@ export default function GamePage() {
                             {activeBets.map((bet, i) => (
                               <div key={i} className="bg-white/10 p-4 rounded-2xl flex justify-between items-center">
                                 <span className="font-mono">{bet.user.toBase58().slice(0, 8)}...</span>
-                                <span className="text-green-400 font-bold">{(bet.amount / LAMPORTS_PER_SOL).toFixed(6)} SOL</span>
+                                <span className="text-green-400 font-bold">{(Number(bet.amount.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL</span>
                               </div>
                             ))}
                           </div>
@@ -587,21 +650,21 @@ export default function GamePage() {
                       <div
                         key={i}
                         className={`p-4 rounded-2xl flex justify-between items-center ${
-                          g.active ? 'bg-green-900/50' : 'bg-white/5'
+                          g.active ? 'bg-green-900/50' : g.crashed ? 'bg-red-900/50' : 'bg-white/5'
                         }`}
                       >
                         <div>
-                          <p className="font-bold">{g.game_name}</p>
+                          <p className="font-bold">{g.gameName}</p>
                           <p className="text-sm opacity-75">
-                            {(g.multiplier / 100).toFixed(2)}x •{' '}
+                            {(Number(g.multiplier.toString()) / 100).toFixed(2)}x •{' '}
                             {g.active ? 'LIVE' : g.crashed ? 'CRASHED' : 'RESOLVED'}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="font-mono text-green-400">
-                            {(g.total_volume / LAMPORTS_PER_SOL).toFixed(3)} SOL
+                            {(Number(g.totalVolume.toString()) / LAMPORTS_PER_SOL).toFixed(3)} SOL
                           </p>
-                          <p className="text-xs opacity-75">{g.total_bets} bets</p>
+                          <p className="text-xs opacity-75">{Number(g.totalBets.toString())} bets</p>
                         </div>
                       </div>
                     ))}
