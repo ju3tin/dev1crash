@@ -473,7 +473,7 @@ pub enum ErrorCode {
     #[msg("Math overflow")]
     MathOverflow,
     #[msg("Invalid PDA")]
-    InvalidPda,
+    InvalidPda, 
     #[msg("Bet is still active")]
     BetStillActive,
     #[msg("Payout already claimed")]
