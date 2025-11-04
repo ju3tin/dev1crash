@@ -53,7 +53,7 @@ export async function getAccountInfo(pubkey: PublicKey) {
 
 // Update your Anchor provider to use Helius RPC (in @/lib/anchor6.ts)
 import { AnchorProvider } from '@coral-xyz/anchor';
-export const heliusProvider = new AnchorProvider(heliusConnection, wallet, {});
+/*export const heliusProvider = new AnchorProvider(heliusConnection, wallet, {});
 export function useProgram() {
   return new Program(idl, PROGRAM_ID, heliusProvider); // idl from your IDL.json
-}
+}*/
