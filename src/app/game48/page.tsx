@@ -37,7 +37,7 @@ export default function GamePage() {
   const [withdrawAmt, setWithdrawAmt] = useState('');
   const [targetMult, setTargetMult] = useState('2.5');
   const [gameName, setGameName] = useState('Crash #1');
-  const [betUser, setBetUser] = useState(''); // Admin: optional pubkey
+  const [betUser, setBetUser] = useState('');
   const [betAmt, setBetAmt] = useState('');
   const [crashNow, setCrashNow] = useState(false);
   const [adminWithdrawAmt, setAdminWithdrawAmt] = useState('');
@@ -45,15 +45,27 @@ export default function GamePage() {
   const [minBetAmt, setMinBetAmt] = useState('');
   const [maxBetAmt, setMaxBetAmt] = useState('');
 
-  // === PDAs ===
-  const configPda = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID)[0] : null;
-  const userPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], PROGRAM_ID)[0] : null;
-  const vaultPda = program ? PublicKey.findProgramAddressSync([Buffer.from('vault')], PROGRAM_ID)[0] : null;
+  // === PDAs (CORRECT DESTRUCTURING) ===
+  const [configPda] = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID) : [null];
+  const [userPda] = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], PROGRAM_ID) : [null];
+  const [vaultPda] = program ? PublicKey.findProgramAddressSync([Buffer.from('vault')], PROGRAM_ID) : [null];
 
   // === HELPERS ===
   const showStatus = (type: 'success' | 'error', msg: string) => {
     setStatus({ type, msg });
-    setTimeout(() => setStatus(null), 4000);
+    setTimeout(() => setStatus(null), 6000);
+  };
+
+  const logTx = (label: string, txSig: string) => {
+    console.log(`%c[TX] ${label}`, 'color: #00ff00; font-weight: bold;', txSig);
+  };
+
+  const logError = (label: string, error: any) => {
+    console.error(`%c[ERROR] ${label}`, 'color: #ff0066; font-weight: bold;', error);
+    const logs = error?.logs?.join('\n') || '';
+    const code = error?.error?.errorCode?.code || 'Unknown';
+    const msg = error?.message || 'No message';
+    showStatus('error', `${label}: ${code}\n${msg}${logs ? '\n\nLogs:\n' + logs : ''}`);
   };
 
   // === DATA LOADING ===
@@ -74,15 +86,19 @@ export default function GamePage() {
       const data = await program.account.config.fetch(configPda);
       setConfig(data);
       setIsAdmin(data.admin.toBase58() === wallet?.toBase58());
-    } catch { }
+      console.log('%c[CONFIG] Loaded', 'color: #00aaff;', data);
+    } catch (e) { console.error('Config fetch failed', e); }
   };
 
   const loadUserBalance = async () => {
     if (!userPda || !program) return;
     const info = await connection.getAccountInfo(userPda);
     if (!info) { setUserBalance(null); return; }
-    try { setUserBalance(await program.account.userBalance.fetch(userPda)); }
-    catch { setUserBalance(null); }
+    try {
+      const bal = await program.account.userBalance.fetch(userPda);
+      setUserBalance(bal);
+      console.log('%c[USER] Balance', 'color: #00ffaa;', bal);
+    } catch { setUserBalance(null); }
   };
 
   const loadAllGames = async () => {
@@ -101,7 +117,8 @@ export default function GamePage() {
         setMultiplier(100);
         setIsAnimating(false);
       }
-    } catch (e) { console.error(e); }
+      console.log('%c[GAMES] Loaded', 'color: #ffaa00;', sorted.length);
+    } catch (e) { console.error('Games fetch failed', e); }
   };
 
   const loadActiveBets = async (gameId: PublicKey) => {
@@ -123,6 +140,7 @@ export default function GamePage() {
         .filter(b => b.account.user.toBase58() === wallet.toBase58() && b.account.gameId.toBase58() === gameId.toBase58())
         .map(b => b.account);
       setMyBets(my);
+      console.log('%c[MY BETS]', 'color: #ff00ff;', my);
     } catch { }
   };
 
@@ -146,12 +164,14 @@ export default function GamePage() {
     if (!program || !wallet || !configPda || !vaultPda) return;
     setLoading(true);
     try {
+      console.log('%c[INIT] Building TX', 'color: #00ffff;');
       const tx = await program.methods.initialize(wallet)
         .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Initialize', sig);
       showStatus('success', 'Config initialized!');
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Initialize', e); }
     finally { setLoading(false); }
   };
 
@@ -162,10 +182,11 @@ export default function GamePage() {
       const tx = await program.methods.createUser()
         .accounts({ user: userPda, userWallet: wallet, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Create User', sig);
       showStatus('success', 'User created!');
       setTimeout(loadUserBalance, 3000);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Create User', e); }
     finally { setLoading(false); }
   };
 
@@ -178,11 +199,12 @@ export default function GamePage() {
       const tx = await program.methods.deposit(new BN(lamports))
         .accounts({ user: userPda, userWallet: wallet, vault: vaultPda, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Deposit', sig);
       showStatus('success', 'Deposited!');
       setDepositAmt('');
       setTimeout(loadUserBalance, 4000);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Deposit', e); }
     finally { setLoading(false); }
   };
 
@@ -195,11 +217,12 @@ export default function GamePage() {
       const tx = await program.methods.withdraw(new BN(lamports))
         .accounts({ user: userPda, userWallet: wallet, vault: vaultPda, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Withdraw', sig);
       showStatus('success', 'Withdrawn!');
       setWithdrawAmt('');
       setTimeout(loadUserBalance, 4000);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Withdraw', e); }
     finally { setLoading(false); }
   };
 
@@ -209,25 +232,26 @@ export default function GamePage() {
     if (mult < 100 || mult > 10000) return showStatus('error', '1.0x - 100x');
 
     const createdAtSec = Math.floor(Date.now() / 1000);
-    const seed = new Uint32Array([createdAtSec]);
-    const seedBytes = Buffer.from(seed.buffer);
-    const [gamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), seedBytes], PROGRAM_ID);
+    const [gamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), Buffer.from(new Uint32Array([createdAtSec]).buffer)], PROGRAM_ID);
 
     setLoading(true);
     try {
       const tx = await program.methods.createGame(new BN(mult), gameName, createdAtSec)
         .accounts({ gameState: gamePda, signer: wallet, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Create Game', sig);
       showStatus('success', 'Game created!');
       loadAllGames();
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Create Game', e); }
     finally { setLoading(false); }
   };
 
-  // === USER PLACE BET (NO PUBKEY NEEDED) ===
   const placeUserBet = async () => {
-    if (!program || !wallet || !currentGame || !betAmt || !userPda || !configPda) return;
+    if (!program || !wallet || !currentGame || !betAmt || !userPda || !configPda) {
+      showStatus('error', 'Missing data (check wallet, game, config)');
+      return;
+    }
     const lamports = Math.floor(parseFloat(betAmt) * LAMPORTS_PER_SOL);
     if (lamports < 1000) return showStatus('error', 'Min: 0.000001 SOL');
 
@@ -235,6 +259,8 @@ export default function GamePage() {
       [Buffer.from('bet'), wallet.toBytes(), currentGame.gameId.toBytes()],
       PROGRAM_ID
     );
+
+    console.log('%c[PLACE BET] PDAs', 'color: #ffaa00;', { betPda: betPda.toBase58(), userPda: userPda.toBase58(), configPda: configPda.toBase58() });
 
     setLoading(true);
     try {
@@ -248,16 +274,18 @@ export default function GamePage() {
           config: configPda,
         })
         .transaction();
-      await sendTransaction(tx, connection);
+
+      const sig = await sendTransaction(tx, connection);
+      logTx('Place Bet', sig);
       showStatus('success', 'Bet placed!');
       setBetAmt('');
       loadActiveBets(currentGame.gameId);
       loadMyBets(currentGame.gameId);
-    } catch (e: any) { showStatus('error', e.message); }
+      setTimeout(loadUserBalance, 2000);
+    } catch (e: any) { logError('Place Bet', e); }
     finally { setLoading(false); }
   };
 
-  // === ADMIN PLACE BET (OPTIONAL PUBKEY) ===
   const placeAdminBet = async () => {
     if (!program || !wallet || !currentGame || !betAmt || !configPda) return;
     const lamports = Math.floor(parseFloat(betAmt) * LAMPORTS_PER_SOL);
@@ -269,12 +297,8 @@ export default function GamePage() {
       catch { return showStatus('error', 'Invalid pubkey'); }
     }
 
-    const [userBalancePda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('user_balance'), targetUser.toBytes()], PROGRAM_ID
-    );
-    const [betPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('bet'), targetUser.toBytes(), currentGame.gameId.toBytes()], PROGRAM_ID
-    );
+    const [userBalancePda] = PublicKey.findProgramAddressSync([Buffer.from('user_balance'), targetUser.toBytes()], PROGRAM_ID);
+    const [betPda] = PublicKey.findProgramAddressSync([Buffer.from('bet'), targetUser.toBytes(), currentGame.gameId.toBytes()], PROGRAM_ID);
 
     setLoading(true);
     try {
@@ -288,12 +312,13 @@ export default function GamePage() {
           config: configPda,
         })
         .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Bet placed!');
+      const sig = await sendTransaction(tx, connection);
+      logTx('Admin Place Bet', sig);
+      showStatus('success', 'Admin bet placed!');
       setBetUser(''); setBetAmt('');
       loadActiveBets(currentGame.gameId);
       if (targetUser.toBase58() === wallet.toBase58()) loadMyBets(currentGame.gameId);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Admin Place Bet', e); }
     finally { setLoading(false); }
   };
 
@@ -318,47 +343,51 @@ export default function GamePage() {
         .remainingAccounts(remaining)
         .transaction();
 
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Resolve Game', sig);
       showStatus('success', crashNow ? 'CRASHED!' : 'WINNERS PAID!');
 
-      // AUTO-CREATE NEXT GAME
       setTimeout(async () => {
         const nextMult = 200 + Math.floor(Math.random() * 300);
         const name = `Crash #${Date.now().toString().slice(-4)}`;
         const createdAtSec = Math.floor(Date.now() / 1000);
-        const seed = new Uint32Array([createdAtSec]);
-        const seedBytes = Buffer.from(seed.buffer);
-        const [newGamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), seedBytes], PROGRAM_ID);
+        const [newGamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), Buffer.from(new Uint32Array([createdAtSec]).buffer)], PROGRAM_ID);
 
         try {
           const newTx = await program.methods.createGame(new BN(nextMult), name, createdAtSec)
             .accounts({ gameState: newGamePda, signer: wallet, systemProgram: SystemProgram.programId })
             .transaction();
-          await sendTransaction(newTx, connection);
+          const newSig = await sendTransaction(newTx, connection);
+          logTx('Auto New Game', newSig);
           showStatus('success', `New game: ${name}`);
           loadAllGames();
-        } catch (e: any) { showStatus('error', 'Auto-game failed'); }
+        } catch (e: any) { logError('Auto New Game', e); }
       }, 3000);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Resolve Game', e); }
     finally { setLoading(false); setCrashNow(false); }
   };
 
+  // === CLAIM PAYOUT ===
   const claimPayout = async (bet: any) => {
     if (!program || !wallet || !userPda) return;
     const [betPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('bet'), bet.user.toBytes(), bet.gameId.toBytes()], PROGRAM_ID
+      [Buffer.from('bet'), bet.user.toBytes(), bet.gameId.toBytes()],
+      PROGRAM_ID
     );
+
+    console.log('%c[CLAIM] Bet PDA', 'color: #ff00ff;', betPda.toBase58());
 
     setLoading(true);
     try {
       const tx = await program.methods.claimPayout()
         .accounts({ bet: betPda, userBalance: userPda, signer: wallet })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Claim Payout', sig);
       showStatus('success', 'Payout claimed!');
       loadUserBalance();
       loadMyBets(bet.gameId);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Claim Payout', e); }
     finally { setLoading(false); }
   };
 
@@ -371,10 +400,11 @@ export default function GamePage() {
       const tx = await program.methods.adminWithdraw(new BN(lamports))
         .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Admin Withdraw', sig);
       showStatus('success', 'Admin withdrawal complete!');
       setAdminWithdrawAmt('');
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Admin Withdraw', e); }
     finally { setLoading(false); }
   };
 
@@ -387,10 +417,11 @@ export default function GamePage() {
       const tx = await program.methods.adminDepositBounty(new BN(lamports))
         .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Add Bounty', sig);
       showStatus('success', 'Bounty added!');
       setBountyAmt('');
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Add Bounty', e); }
     finally { setLoading(false); }
   };
 
@@ -403,11 +434,12 @@ export default function GamePage() {
       const tx = await program.methods.adminSetMinBet(new BN(lamports))
         .accounts({ config: configPda, signer: wallet })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Set Min Bet', sig);
       showStatus('success', 'Min bet updated!');
       setMinBetAmt('');
       setTimeout(loadConfig, 2000);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Set Min Bet', e); }
     finally { setLoading(false); }
   };
 
@@ -420,15 +452,16 @@ export default function GamePage() {
       const tx = await program.methods.adminSetMaxBet(new BN(lamports))
         .accounts({ config: configPda, signer: wallet })
         .transaction();
-      await sendTransaction(tx, connection);
+      const sig = await sendTransaction(tx, connection);
+      logTx('Set Max Bet', sig);
       showStatus('success', 'Max bet updated!');
       setMaxBetAmt('');
       setTimeout(loadConfig, 2000);
-    } catch (e: any) { showStatus('error', e.message); }
+    } catch (e: any) { logError('Set Max Bet', e); }
     finally { setLoading(false); }
   };
 
-  // === UI RENDERING ===
+  // === RENDER ===
   return (
     <>
       <Navbar />
@@ -506,28 +539,34 @@ export default function GamePage() {
                       </div>
                     </div>
 
-                    {/* USER BET INPUT */}
+                    {/* BET INPUT + LIMITS */}
                     {currentGame && (
-                      <div className="mt-6">
+                      <div className="mt-6 space-y-3">
                         <input type="number" step="0.000001" min="0.000001"
                           placeholder="Your Bet Amount (SOL)" value={betAmt}
                           onChange={e => setBetAmt(e.target.value)}
                           className="w-full p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        {config && (
+                          <p className="text-sm text-cyan-300 text-center">
+                            Min: {(Number(config.minBet) / LAMPORTS_PER_SOL).toFixed(6)} SOL • 
+                            Max: {(Number(config.maxBet) / LAMPORTS_PER_SOL).toFixed(6)} SOL
+                          </p>
+                        )}
                         <button onClick={placeUserBet} disabled={loading || !betAmt || userBalance?.hasActiveBet}
-                          className="mt-3 w-full p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                          className="w-full p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
                           <Send className="w-5 h-5" />
                           {loading ? 'Placing...' : 'PLACE MY BET'}
                         </button>
                       </div>
                     )}
 
-                    {/* MY BETS WITH PAYOUT & CLAIM */}
+                    {/* MY BETS WITH CLAIM */}
                     {myBets.length > 0 && (
                       <div className="mt-6">
                         <h3 className="text-xl font-bold mb-4">My Bets</h3>
                         <div className="space-y-2">
                           {myBets.map((bet, i) => (
-                            <div key={i} className="bg-white/10 p-3 rounded-xl flex justify-between items-center">
+                            <div key={i} className="bg-white/10 p-3 rounded-xl flex justify-between items-center text-sm">
                               <div>
                                 <span className="font-mono">
                                   {(Number(bet.amount.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL
@@ -538,17 +577,19 @@ export default function GamePage() {
                                   </span>
                                 )}
                               </div>
-                              {bet.claimed ? (
-                                <CheckCircle className="w-5 h-5 text-green-400" />
-                              ) : bet.payoutAmount?.gt(new BN(0)) ? (
-                                <button onClick={() => claimPayout(bet)}
-                                  className="px-3 py-1 bg-green-600 rounded text-sm"
-                                  disabled={loading}>
-                                  Claim
-                                </button>
-                              ) : (
-                                <span className="text-orange-400">Active</span>
-                              )}
+                              <div className="flex items-center gap-2">
+                                {bet.claimed ? (
+                                  <CheckCircle className="w-5 h-5 text-green-400" />
+                                ) : bet.payoutAmount?.gt(new BN(0)) ? (
+                                  <button onClick={() => claimPayout(bet)}
+                                    className="px-3 py-1 bg-green-600 rounded text-xs font-bold"
+                                    disabled={loading}>
+                                    CLAIM
+                                  </button>
+                                ) : (
+                                  <span className="text-orange-400 text-xs">Active</span>
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -596,7 +637,7 @@ export default function GamePage() {
                     </div>
                   ) : (
                     <div className="space-y-8">
-                      {/* ADMIN BET (optional user) */}
+                      {/* ADMIN BET */}
                       <div className="grid md:grid-cols-2 gap-6">
                         <input placeholder="User Pubkey (optional)" value={betUser}
                           onChange={e => setBetUser(e.target.value)}
@@ -643,11 +684,9 @@ export default function GamePage() {
                         </div>
                       </div>
 
-                      {/* ADMIN SETTINGS */}
+                      {/* MIN/MAX BET */}
                       <div className="mt-10 space-y-6 border-t border-white/20 pt-6">
-                        <h3 className="text-2xl font-bold text-center">Program Settings</h3>
-
-                        {/* MIN / MAX BET */}
+                        <h3 className="text-2xl font-bold text-center">Bet Limits</h3>
                         <div className="grid md:grid-cols-2 gap-6">
                           <div className="space-y-3">
                             <input type="number" step="0.000001" min="0.000001"
@@ -670,14 +709,15 @@ export default function GamePage() {
                             </button>
                           </div>
                         </div>
-
                         {config && (
                           <div className="text-center text-lg opacity-75">
-                            Current Min: {(Number(config.minBet.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL | 
-                            Max: {(Number(config.maxBet.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL
+                            Current: Min <span className="text-cyan-400 font-mono">
+                              {(Number(config.minBet.toString()) / LAMPORTS_PER_SOL).toFixed(6)}
+                            </span> SOL | Max <span className="text-purple-400 font-mono">
+                              {(Number(config.maxBet.toString()) / LAMPORTS_PER_SOL).toFixed(6)}
+                            </span> SOL
                           </div>
                         )}
-
                       </div>
 
                       {activeBets.length > 0 && (
@@ -733,9 +773,12 @@ export default function GamePage() {
               {/* STATUS TOAST */}
               {status && (
                 <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                  className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-96 flex items-center gap-3 p-5 rounded-2xl text-xl font-bold ${status.type === 'error' ? 'bg-red-900/70 text-red-300' : 'bg-green-900/70 text-green-300'} backdrop-blur shadow-2xl`}>
-                  {status.type === 'error' ? <X className="w-6 h-6" /> : <Trophy className="w-6 h-6" />}
-                  {status.msg}
+                  className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-96 p-5 rounded-2xl text-sm font-mono whitespace-pre-line ${status.type === 'error' ? 'bg-red-900/90 text-red-200' : 'bg-green-900/90 text-green-200'} backdrop-blur shadow-2xl`}>
+                  <div className="flex items-center gap-3 mb-2">
+                    {status.type === 'error' ? <X className="w-6 h-6" /> : <Trophy className="w-6 h-6" />}
+                    <span className="font-bold text-lg">Transaction {status.type.toUpperCase()}</span>
+                  </div>
+                  <div className="text-xs">{status.msg}</div>
                 </motion.div>
               )}
             </>
