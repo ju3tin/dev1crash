@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useProgram } from '@/lib/anchor8';
+import { useProgram } from '@/lib/anchor9';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
@@ -85,18 +85,7 @@ export default function GamePage() {
     try {
       const data = await program.account.config.fetch(configPda);
       setConfig(data);
-      if (
-        typeof data === 'object' &&
-        data !== null &&
-        'admin' in data &&
-        typeof (data as any).admin === 'object' &&
-        (data as any).admin?.toBase58
-      ) {
-        setIsAdmin((data as any).admin.toBase58() === wallet?.toBase58());
-      } else {
-        setIsAdmin(false);
-        console.warn('Config account admin field missing or wrong type:', data);
-      }
+      setIsAdmin(data.admin.toBase58() === wallet?.toBase58());
       console.log('%c[CONFIG] Loaded', 'color: #00aaff;', data);
     } catch (e) { console.error('Config fetch failed', e); }
   };
@@ -116,23 +105,14 @@ export default function GamePage() {
     if (!program) return;
     try {
       const games = await program.account.gameState.all();
-      const sorted = games.map(g => {
-        // extra check for expected struct shape
-        if (g && g.account && 'createdAt' in g.account && typeof (g.account as any).createdAt?.sub === 'function') {
-          return g.account;
-        }
-        return null;
-      }).filter((a): a is any => a !== null)
-      .sort((a, b) => Number((a as any).createdAt.sub((b as any).createdAt)));
+      const sorted = games.map(g => g.account).sort((a, b) => Number(b.createdAt.sub(a.createdAt)));
       setAllGames(sorted);
-      const active = sorted.find(g => g && 'active' in g && (g as any).active);
+      const active = sorted.find(g => g.active);
       setCurrentGame(active || null);
       if (active) {
-        startAnimation(Number((active as any).multiplier?.toString?.() ?? 100) / 100);
-        if ('gameId' in active && typeof (active as any).gameId?.toBase58 === 'function') {
-          loadActiveBets((active as any).gameId);
-          if (wallet) loadMyBets((active as any).gameId);
-        }
+        startAnimation(Number(active.multiplier.toString()) / 100);
+        loadActiveBets(active.gameId);
+        if (wallet) loadMyBets(active.gameId);
       } else {
         setMultiplier(100);
         setIsAnimating(false);
@@ -145,15 +125,9 @@ export default function GamePage() {
     if (!program) return;
     try {
       const bets = await program.account.bet.all();
-      const active = bets.filter(b =>
-        b &&
-        b.account &&
-        'gameId' in b.account &&
-        'active' in b.account &&
-        typeof (b.account as any).gameId?.toBase58 === 'function' &&
-        (b.account as any).gameId.toBase58() === gameId.toBase58() &&
-        (b.account as any).active
-      ).map(b => b.account);
+      const active = bets
+        .filter(b => b.account.gameId.toBase58() === gameId.toBase58() && b.account.active)
+        .map(b => b.account);
       setActiveBets(active);
     } catch { }
   };
@@ -162,16 +136,9 @@ export default function GamePage() {
     if (!program || !wallet) return;
     try {
       const bets = await program.account.bet.all();
-      const my = bets.filter(b =>
-        b &&
-        b.account &&
-        'user' in b.account &&
-        'gameId' in b.account &&
-        typeof (b.account as any).user?.toBase58 === 'function' &&
-        typeof (b.account as any).gameId?.toBase58 === 'function' &&
-        (b.account as any).user.toBase58() === wallet.toBase58() &&
-        (b.account as any).gameId.toBase58() === gameId.toBase58()
-      ).map(b => b.account);
+      const my = bets
+        .filter(b => b.account.user.toBase58() === wallet.toBase58() && b.account.gameId.toBase58() === gameId.toBase58())
+        .map(b => b.account);
       setMyBets(my);
       console.log('%c[MY BETS]', 'color: #ff00ff;', my);
     } catch { }
@@ -281,12 +248,8 @@ export default function GamePage() {
   };
 
   const placeUserBet = async () => {
-    if (!wallet) {
-      showStatus('error', 'Wallet not connected. Connect your wallet and reload the page.');
-      return;
-    }
-    if (!program || !currentGame || !betAmt || !userPda || !configPda) {
-      showStatus('error', 'Missing program connection or game setup. Try reconnecting your wallet and reloading this page.');
+    if (!program || !wallet || !currentGame || !betAmt || !userPda || !configPda) {
+      showStatus('error', 'Missing data (check wallet, game, config)');
       return;
     }
     const lamports = Math.floor(parseFloat(betAmt) * LAMPORTS_PER_SOL);
@@ -319,10 +282,7 @@ export default function GamePage() {
       loadActiveBets(currentGame.gameId);
       loadMyBets(currentGame.gameId);
       setTimeout(loadUserBalance, 2000);
-    } catch (e: any) { 
-      logError('Place Bet', e); 
-      showStatus('error', `Transaction failed. ${(e?.message || e)}`);
-    }
+    } catch (e: any) { logError('Place Bet', e); }
     finally { setLoading(false); }
   };
 
@@ -368,20 +328,12 @@ export default function GamePage() {
     setIsAnimating(false);
     try {
       const allBets = await program.account.bet.all();
-      const gameBets = allBets.filter(b =>
-        b && b.account &&
-        'gameId' in b.account &&
-        typeof (b.account as any).gameId?.toBase58 === 'function' &&
-        (b.account as any).gameId.toBase58() === currentGame.gameId.toBase58()
-      );
+      const gameBets = allBets.filter(b => b.account.gameId.toBase58() === currentGame.gameId.toBase58());
 
       const remaining: any[] = [];
       for (const bet of gameBets) {
         const betAcc = bet.publicKey;
-        const userPda = PublicKey.findProgramAddressSync([
-          Buffer.from('user_balance'),
-          (typeof (bet.account as any).user?.toBytes === 'function') ? (bet.account as any).user.toBytes() : Buffer.from([])
-        ], PROGRAM_ID)[0];
+        const userPda = PublicKey.findProgramAddressSync([Buffer.from('user_balance'), bet.account.user.toBytes()], PROGRAM_ID)[0];
         remaining.push({ pubkey: betAcc, isSigner: false, isWritable: true });
         remaining.push({ pubkey: userPda, isSigner: false, isWritable: true });
       }

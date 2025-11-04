@@ -11,12 +11,12 @@ export const useProgram = () => {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  // Always create a new Program instance if wallet exists
-  if (wallet.publicKey) {
+  if (!program && wallet.publicKey) {
     const provider = new AnchorProvider(connection, wallet as any, {
       commitment: 'confirmed',
     });
-    return new Program(idl as any, PROGRAM_ID, provider);
+    program = new Program(idl as any, PROGRAM_ID, provider);
   }
-  return null;
+
+  return program;
 };
