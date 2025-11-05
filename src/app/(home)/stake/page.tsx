@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react"
 import Script from "next/script";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react"
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
-import { Program, AnchorProvider, web3, BN } from "@coral-xyz/anchor"
+import { AnchorProvider, Program, BN, Idl, web3 } from '@project-serum/anchor';
 import { PublicKey, SystemProgram } from "@solana/web3.js"
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token"
 import { Button } from "@/components/ui/button"
@@ -206,7 +206,7 @@ export default function Home() {
       })
 
       const idl = getIDL()
-      const programInstance = new Program(idl, programId, provider) as StakingProgram
+      const programInstance = new Program(idl as Idl, programId, provider) as StakingProgram
       console.log("Program initialized successfully:", programInstance.programId.toBase58())
       setMessage("")
       return programInstance
@@ -359,7 +359,7 @@ export default function Home() {
         oneYear: { oneYear: {} },
       }[lockupPeriod]
 
-      const stakeAmount = new web3.BN(amount)
+      const stakeAmount = new BN(amount)
 
       const tx = await program.methods
         .stake(stakeAmount, { [lockupPeriod.charAt(0).toUpperCase() + lockupPeriod.slice(1)]: {} })
