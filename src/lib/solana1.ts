@@ -1,6 +1,6 @@
 // src/lib/solana.ts
 import { Connection, PublicKey } from '@solana/web3.js';
-import { Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
+import { Program, AnchorProvider, Wallet } from '@project-serum/anchor';
 import { Keypair } from '@solana/web3.js';
 import idl from '../idls/crash123k.json'; // Your IDL file
 
@@ -38,7 +38,7 @@ export async function initProgram(): Promise<Program> {
     commitment: 'confirmed',
   });
 
-  program = new Program(idl, PROGRAM_ID, provider)
+  program = new Program(idl as any, PROGRAM_ID, provider)
   return program;
 }
 
