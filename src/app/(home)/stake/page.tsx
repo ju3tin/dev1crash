@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react"
 import Script from "next/script";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react"
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui"
-import { Program, AnchorProvider, web3 } from "@coral-xyz/anchor"
+import { Program, AnchorProvider, web3, BN } from "@coral-xyz/anchor"
 import { PublicKey, SystemProgram } from "@solana/web3.js"
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token"
 import { Button } from "@/components/ui/button"
