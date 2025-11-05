@@ -1,0 +1,52 @@
+// src/utils/spl.ts
+import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  getAssociatedTokenAddress,
+  getAccount,
+  MintLayout,
+  TOKEN_PROGRAM_ID,
+  Account,
+} from '@solana/spl-token';
+
+// ──────────────────────────────────────────────────────────────
+// 1. getMint (0.4+ version)
+// ──────────────────────────────────────────────────────────────
+export async function getMint(
+  connection: Connection,
+  mint: PublicKey
+) {
+  const accountInfo = await connection.getAccountInfo(mint);
+  if (!accountInfo) throw new Error('Mint not found');
+  if (!accountInfo.owner.equals(TOKEN_PROGRAM_ID)) {
+    throw new Error('Not a token mint');
+  }
+  const raw = MintLayout.decode(accountInfo.data);
+  return {
+    mintAuthority: raw.mintAuthorityOption ? raw.mintAuthority : null,
+    supply: raw.supply,
+    decimals: raw.decimals,
+    isInitialized: raw.isInitialized,
+    freezeAuthority: raw.freezeAuthorityOption ? raw.freezeAuthority : null,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────
+// 2. getAssociatedTokenAddress (async only)
+// ──────────────────────────────────────────────────────────────
+export async function getAssociatedTokenAddressSync(
+  mint: PublicKey,
+  owner: PublicKey,
+  allowOwnerOffCurve = false
+): Promise<PublicKey> {
+  return getAssociatedTokenAddress(mint, owner, allowOwnerOffCurve);
+}
+
+// ──────────────────────────────────────────────────────────────
+// 3. getTokenAccount (replaces getAccount)
+// ──────────────────────────────────────────────────────────────
+export async function getTokenAccount(
+  connection: Connection,
+  address: PublicKey
+): Promise<Account> {
+  return getAccount(connection, address);
+}

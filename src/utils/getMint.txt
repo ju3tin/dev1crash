@@ -1,0 +1,36 @@
+// src/utils/getMint.ts
+import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  TOKEN_PROGRAM_ID,
+  MintLayout,
+  AccountInfo,
+} from '@solana/spl-token';
+
+/**
+ * getMint for @solana/spl-token@0.4+
+ * @param connection
+ * @param mint PublicKey of the mint
+ * @returns Mint object (same shape as old getMint)
+ */
+export async function getMint(
+  connection: Connection,
+  mint: PublicKey
+) {
+  const accountInfo = await connection.getAccountInfo(mint);
+  if (!accountInfo) throw new Error('Mint account not found');
+
+  if (!accountInfo.owner.equals(TOKEN_PROGRAM_ID)) {
+    throw new Error('Account is not owned by Token Program');
+  }
+
+  // Decode using MintLayout (same as v0.3.8)
+  const rawMint = MintLayout.decode(accountInfo.data);
+
+  return {
+    mintAuthority: rawMint.mintAuthorityOption ? rawMint.mintAuthority : null,
+    supply: rawMint.supply,
+    decimals: rawMint.decimals,
+    isInitialized: rawMint.isInitialized,
+    freezeAuthority: rawMint.freezeAuthorityOption ? rawMint.freezeAuthority : null,
+  };
+}
