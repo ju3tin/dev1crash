@@ -1,8 +1,8 @@
 // src/pages/api/helius/adminDepositBounty.ts
-//import type { APIRoute } from 'astro';
+import type { APIRoute } from 'astro';
 import { Keypair } from '@solana/web3.js';
 import { BN, web3 } from '@coral-xyz/anchor';
-import { getPDA, initProgram } from '../../../lib/solana';
+import { getPDA, initProgram } from '../../../lib/solana1';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
