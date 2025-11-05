@@ -38,7 +38,7 @@ export async function initProgram(): Promise<Program> {
     commitment: 'confirmed',
   });
 
-  program = new Program(idl, programId, provider)
+  program = new Program(idl, PROGRAM_ID, provider)
   return program;
 }
 
