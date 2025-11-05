@@ -2,10 +2,10 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
 import { Keypair } from '@solana/web3.js';
-import idl from './idl.json'; // Your IDL file
+import idl from '../idls/crash123k.json'; // Your IDL file
 
 const HELIUS_RPC_URL = process.env.HELIUS_RPC_URL || 'https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY';
-const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || 'YOUR_PROGRAM_ID');
+const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || '8zEsXxhNZH2toK1Bjn3zt9jpC4JneTbYw1wMYXw7gcjS');
 
 let connection: Connection;
 let program: Program;
@@ -38,7 +38,7 @@ export async function initProgram(): Promise<Program> {
     commitment: 'confirmed',
   });
 
-  program = new Program(idl as any, PROGRAM_ID, provider);
+  program = new Program(idl, programId, provider)
   return program;
 }
 
