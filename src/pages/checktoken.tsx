@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { getAssociatedTokenAddressSync, getAccount, getMint } from '@solana/spl-token';
+import { getAssociatedTokenAddressSync, getMint } from '@solana/spl-token';
 import styles from '@/styles/PageFooter.module.css';
 
 require('@solana/wallet-adapter-react-ui/styles.css');
@@ -46,8 +46,8 @@ export default function CheckToken() {
       const ata = getAssociatedTokenAddressSync(mintPublicKey, walletPublicKey);
 
       // Check if the ATA exists and has a balance
-      const accountInfo = await getAccount(connection, ata).catch(() => null);
-      if (accountInfo && accountInfo.amount > 0) {
+      const balanceInfo = await connection.getTokenAccountBalance(ata).catch(() => null);
+      if (balanceInfo && Number(balanceInfo.value.amount) > 0) {
         setHasToken(true);
       } else {
         setHasToken(false);

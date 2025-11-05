@@ -8,8 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.32.1",
-    "@coral-xyz/anchor-cli": "^0.31.2",
+    "@coral-xyz/anchor": "^0.29.0",
     "@mui/material": "^7.3.4",
     "@nextui-org/react": "^2.6.11",
     "@prisma/client": "^6.18.0",
@@ -85,6 +84,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@coral-xyz/anchor-cli": "^0.29.0",
     "@types/d3": "^7.4.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
