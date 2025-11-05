@@ -17,7 +17,7 @@ import {
 import { getPDA } from '@/lib/solana1';
 import idl from '@/idls/crash123k.json';
 
-const HELIUS_RPC_URL = process.env.HELIUS_RPC_URL || 'https://mainnet.helius-rpc.com/?api-key=YOUR_KEY';
+const HELIUS_RPC_URL = process.env.HELIUS_RPC_URL || 'https://devnet.helius-rpc.com/?api-key=4859defa-46ae-4d87-abe4-1355598c6d76';
 const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || '8zEsXxhNZH2toK1Bjn3zt9jpC4JneTbYw1wMYXw7gcjS');
 
 export default async function handler(
@@ -77,7 +77,7 @@ export default async function handler(
     });
 
     // CORRECT ORDER: idl, PROGRAM_ID, provider
-    const program = new Program(idl as any, PROGRAM_ID as any, provider as any);
+    const program = new Program(idl as any, PROGRAM_ID, provider);
 
     const signature = await program.methods
       .initialize(adminPubkey)

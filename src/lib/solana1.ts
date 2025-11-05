@@ -4,7 +4,7 @@ import { Program, AnchorProvider, Wallet } from '@project-serum/anchor';
 import { Keypair } from '@solana/web3.js';
 import idl from '../idls/crash123k.json'; // Your IDL file
 
-const HELIUS_RPC_URL = process.env.HELIUS_RPC_URL || 'https://mainnet.helius-rpc.com/?api-key=YOUR_API_KEY';
+const HELIUS_RPC_URL = process.env.HELIUS_RPC_URL || 'https://devnet.helius-rpc.com/?api-key=4859defa-46ae-4d87-abe4-1355598c6d76';
 const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || '8zEsXxhNZH2toK1Bjn3zt9jpC4JneTbYw1wMYXw7gcjS');
 
 let connection: Connection;
