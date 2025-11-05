@@ -1,7 +1,7 @@
 // src/pages/api/helius/createUser.ts
 import type { APIRoute } from 'astro';
 import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { getPDA, initProgram, getConnection } from '../../../lib/solana';
+import { getPDA, initProgram, getConnection } from '../../../lib/solana1';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

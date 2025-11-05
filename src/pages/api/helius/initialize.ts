@@ -1,8 +1,8 @@
 // src/pages/api/helius/initialize.ts
 import type { APIRoute } from 'astro';
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import { Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
-import { getPDA, initProgram } from '@/lib/solana';
+import { Program, AnchorProvider, Wallet, web3 } from '@coral-xyz/anchor';
+import { getPDA, initProgram } from '@/lib/solana1';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
