@@ -1,51 +1,93 @@
-// src/pages/api/helius/createUser.ts
-import type { APIRoute } from 'astro';
-import { PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { getPDA, initProgram, getConnection } from '../../../lib/solana1';
+// pages/api/helius/createUser.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from '@solana/web3.js';
+import { Program, AnchorProvider, Wallet, Idl } from '@coral-xyz/anchor';
+import idl from '@/idls/crash123k.json';
 
-export const POST: APIRoute = async ({ request }) => {
+const HELIUS_RPC_URL = process.env.HELIUS_RPC_URL!;
+const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID!);
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
-    const { userPublicKey } = await request.json();
+    const { userPublicKey } = req.body;
     
-    const program = await initProgram();
-    const connection = getConnection();
-    
-    const [userPDA] = getPDA([
-      Buffer.from('user'),
-      new PublicKey(userPublicKey).toBuffer()
-    ]);
+    if (!userPublicKey) {
+      return res.status(400).json({ error: 'Missing userPublicKey' });
+    }
 
-    const ix = await program.methods
+    // Validate public key
+    let userPubkey: PublicKey;
+    try {
+      userPubkey = new PublicKey(userPublicKey);
+    } catch (err) {
+      return res.status(400).json({ error: 'Invalid userPublicKey format' });
+    }
+
+    // 1. Connection
+    const connection = new Connection(HELIUS_RPC_URL, 'confirmed');
+
+    // 2. PDA - derived from user_wallet key (correct seeds: [b"user_balance", user_wallet.key().as_ref()])
+    const [userPDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from('user_balance'), userPubkey.toBuffer()],
+      PROGRAM_ID
+    );
+
+    // 3. Create a dummy wallet for the provider (not used for signing)
+    const dummyWallet: Wallet = {
+      publicKey: userPubkey,
+      payer: {} as any, // Not used
+      signTransaction: async (tx) => tx,
+      signAllTransactions: async (txs) => txs,
+    };
+
+    const provider = new AnchorProvider(connection, dummyWallet, { commitment: 'confirmed' });
+    const program = new Program(idl as Idl, PROGRAM_ID, provider);
+
+    // 4. Build unsigned transaction
+    const tx = await program.methods
       .createUser()
       .accounts({
         user: userPDA,
-        userWallet: new PublicKey(userPublicKey),
+        userWallet: userPubkey,
         systemProgram: SystemProgram.programId,
       })
-      .instruction();
+      .transaction();
 
+    // 5. Set blockhash
     const { blockhash } = await connection.getLatestBlockhash();
-    const tx = new Transaction({
-      recentBlockhash: blockhash,
-      feePayer: new PublicKey(userPublicKey)
-    }).add(ix);
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = userPubkey;
 
+    // 6. Serialize unsigned transaction for client to sign
     const serialized = tx.serialize({
       requireAllSignatures: false,
-      verifySignatures: false
+      verifySignatures: false,
     });
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      transaction: Buffer.from(serialized).toString('base64')
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
+    // 7. Return unsigned transaction
+    return res.status(200).json({
+      success: true,
+      transaction: Buffer.from(serialized).toString('base64'),
+      userPda: userPDA.toBase58(),
+      userWallet: userPubkey.toBase58(),
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
+  } catch (err: any) {
+    console.error('createUser error →', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message ?? 'Unknown error',
     });
   }
-};
+}
