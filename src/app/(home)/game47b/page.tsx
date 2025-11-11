@@ -1014,7 +1014,8 @@ export default function GamePage() {
               <Wallet className="w-16 h-16 mx-auto text-yellow-400 mb-4" />
               <p className="text-2xl">Connect wallet to play</p>
             </div>
-          ) : (
+          ) : 
+          (
             <>
               {/* PLAYER PANEL */}
               <motion.div initial={{ x: -120, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
