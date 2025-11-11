@@ -21,11 +21,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { currencies } from "@/lib/currencies";
 import CurrencyList from "./CurrencyList1";
+import { useProgram } from '@/lib/anchor7';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { BN } from '@project-serum/anchor';
 import styles from "@/styles/components/GameControls.module.css";
 import { useState, useEffect, useRef } from "react";
 //import JSConfetti from "js-confetti";
 import { usePressedStore } from '@/store/ispressed';
 import WalletLoginOverlay from './WalletLoginOverlay';
+
+const PROGRAM_ID = new PublicKey("C3aRucgPgxHHD5nrT4busuTTnVmF55gqJwAccQwr8Qi4");
 
 
 type BetbuttonProps = {
@@ -68,6 +74,12 @@ const Betbutton = ({
   //placeBetCounter,
   sendToCrashGame3,
 }: BetbuttonProps) => {
+  const program = useProgram();
+  const { connection } = useConnection();
+  const { publicKey: wallet, connected, sendTransaction } = useWallet();
+
+  const [userBalance, setUserBalance] = useState<any>(null);
+
   const [placeBetCounter, setPlaceBetCounter] = useState(0);
   const { pressed, setPressedToOne, setPressedToZero } = usePressedStore();
   const [setisButtonPressed] = useState(false);
@@ -93,6 +105,11 @@ const Betbutton = ({
   const [previousTimeRemaining, setPreviousTimeRemaining] = useState<number | null>(null);
   const [newCount, setNewCount] = useState(0);
   const [isButtonPressed1, setIsButtonPressed1] = useState<Boolean>(false);
+
+  const configPda = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID)[0] : null;
+  const userPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], PROGRAM_ID)[0] : null;
+  const vaultPda = program ? PublicKey.findProgramAddressSync([Buffer.from('vault')], PROGRAM_ID)[0] : null;
+
   
   // Wallet validation
   const { walletAddress } = useWalletStore();
