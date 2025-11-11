@@ -21,17 +21,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { currencies } from "@/lib/currencies";
 import CurrencyList from "./CurrencyList1";
-import { useProgram } from '@/lib/anchor7';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { BN } from '@project-serum/anchor';
+import Userbalance1 from "@/components/userbalance1"
 import styles from "@/styles/components/GameControls.module.css";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 //import JSConfetti from "js-confetti";
 import { usePressedStore } from '@/store/ispressed';
 import WalletLoginOverlay from './WalletLoginOverlay';
-
-const PROGRAM_ID = new PublicKey("C3aRucgPgxHHD5nrT4busuTTnVmF55gqJwAccQwr8Qi4");
 
 
 type BetbuttonProps = {
@@ -74,12 +69,6 @@ const Betbutton = ({
   //placeBetCounter,
   sendToCrashGame3,
 }: BetbuttonProps) => {
-  const program = useProgram();
-  const { connection } = useConnection();
-  const { publicKey: wallet, connected, sendTransaction } = useWallet();
-
-  const [userBalance, setUserBalance] = useState<any>(null);
-
   const [placeBetCounter, setPlaceBetCounter] = useState(0);
   const { pressed, setPressedToOne, setPressedToZero } = usePressedStore();
   const [setisButtonPressed] = useState(false);
@@ -105,11 +94,6 @@ const Betbutton = ({
   const [previousTimeRemaining, setPreviousTimeRemaining] = useState<number | null>(null);
   const [newCount, setNewCount] = useState(0);
   const [isButtonPressed1, setIsButtonPressed1] = useState<Boolean>(false);
-
-  const configPda = program ? PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID)[0] : null;
-  const userPda = program && wallet ? PublicKey.findProgramAddressSync([Buffer.from('user_balance'), wallet.toBytes()], PROGRAM_ID)[0] : null;
-  const vaultPda = program ? PublicKey.findProgramAddressSync([Buffer.from('vault')], PROGRAM_ID)[0] : null;
-
   
   // Wallet validation
   const { walletAddress } = useWalletStore();
@@ -160,31 +144,6 @@ const Betbutton = ({
       setAutoCashOut("0");
     }
   };
-
-  const loadUserBalance = async () => {
-    if (!userPda || !program) return;
-    const info = await connection.getAccountInfo(userPda);
-    if (!info) { setUserBalance(null); return; }
-    try { setUserBalance(await program.account.userBalance.fetch(userPda)); }
-    catch { setUserBalance(null); }
-  };
-  
-  const loadAll = useCallback(async () => {
-    if (!program || !wallet || !connected) return;
-    await Promise.all(
-      [
-    //  loadConfig(), 
-      loadUserBalance(), 
-    //  loadAllGames()
-    ]);
-  }, [program, wallet, connected]);
-
-  useEffect(() => {
-    loadAll();
-    const id = setInterval(loadAll, 5000);
-    return () => clearInterval(id);
-  }, [loadAll]);
-
 
   useEffect(() => {
     if (gameState === 'Crashed' && !isButtonPressed1) {
@@ -553,7 +512,6 @@ useEffect(() => {
         <Tab key="Demo" title="Demo">
 <Card>
 	<Label>Demo Amount {demoAmount}</Label>
-  <Label>Sol {userBalance}</Label>
 	</Card>          
 		  <Card>
 Use demo currency to play our games without any risk. If you run out of demo credits, you can reset your demo balance anytime by clicking the button below. Have fun and enjoy your experience!
@@ -623,15 +581,7 @@ Use demo currency to play our games without any risk. If you run out of demo cre
 						value={demoAmount}
 						disabled
 					/>
-				</div>
-        <div className={styles.inputGroup}>
-					<Label>Sol Amount</Label>
-					<Input
-						type="number"
-						min="0"
-						value={userBalance}
-						disabled
-					/>
+          <Userbalance1 />
 				</div>
               <div>
                 <Label htmlFor="bet-amount" className="text-white">
