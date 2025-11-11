@@ -581,9 +581,10 @@ Use demo currency to play our games without any risk. If you run out of demo cre
 						value={demoAmount}
 						disabled
 					/>
-          <Userbalance1 className="mb-6" />
-				</div>
+        </div>
               <div>
+              <Userbalance1 className="mb-6" />
+				
                 <Label htmlFor="bet-amount" className="text-white">
                   Bet Amount (SOL1)
                 </Label>
