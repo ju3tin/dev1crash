@@ -161,6 +161,14 @@ const Betbutton = ({
     }
   };
 
+  const loadUserBalance = async () => {
+    if (!userPda || !program) return;
+    const info = await connection.getAccountInfo(userPda);
+    if (!info) { setUserBalance(null); return; }
+    try { setUserBalance(await program.account.userBalance.fetch(userPda)); }
+    catch { setUserBalance(null); }
+  };
+  
   useEffect(() => {
     if (gameState === 'Crashed' && !isButtonPressed1) {
      console.log('the 1st button was not pressed')
@@ -528,6 +536,7 @@ useEffect(() => {
         <Tab key="Demo" title="Demo">
 <Card>
 	<Label>Demo Amount {demoAmount}</Label>
+  <Label>Sol {userBalance}</Label>
 	</Card>          
 		  <Card>
 Use demo currency to play our games without any risk. If you run out of demo credits, you can reset your demo balance anytime by clicking the button below. Have fun and enjoy your experience!
