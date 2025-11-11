@@ -26,7 +26,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
 import styles from "@/styles/components/GameControls.module.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 //import JSConfetti from "js-confetti";
 import { usePressedStore } from '@/store/ispressed';
 import WalletLoginOverlay from './WalletLoginOverlay';
@@ -169,6 +169,23 @@ const Betbutton = ({
     catch { setUserBalance(null); }
   };
   
+  const loadAll = useCallback(async () => {
+    if (!program || !wallet || !connected) return;
+    await Promise.all(
+      [
+    //  loadConfig(), 
+      loadUserBalance(), 
+    //  loadAllGames()
+    ]);
+  }, [program, wallet, connected]);
+
+  useEffect(() => {
+    loadAll();
+    const id = setInterval(loadAll, 5000);
+    return () => clearInterval(id);
+  }, [loadAll]);
+
+
   useEffect(() => {
     if (gameState === 'Crashed' && !isButtonPressed1) {
      console.log('the 1st button was not pressed')
