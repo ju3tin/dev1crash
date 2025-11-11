@@ -575,23 +575,52 @@ Use demo currency to play our games without any risk. If you run out of demo cre
 	   />
           
             <div className="space-y-4">
+           
             <div className={styles.inputGroup}>
-					<Label>Demo Amount</Label>
-					<Input
-						placeholder="Demo amount"
-						type="number"
-						min="0"
-						value={demoAmount}
-						disabled
-					/>
+           
+					
           
+          
+  {/* Conditional rendering starts here */}
+  {currency === "demo" ? (
+    <>
+        <Label>Demo Amount</Label>
+        <Input
+          placeholder="Demo amount"
+          type="number"
+          min="0"
+          value={demoAmount}
+          disabled
+        />
+        </>
+      ) : currency === "chp" ? (
+        <div>
+          <p>Working on it</p>
+          {/* Add CHIPPY-specific UI here */}
+        </div>
+      ) : (
+        <>
+        <Label>Sol Amount</Label>
+        <Input
+        placeholder="Sol amount"
+        type="number"
+        min="0"
+        value={userBalance?.balance !== undefined
+          ? (Number(userBalance.balance.toString()) / LAMPORTS_PER_SOL).toFixed(6)
+          : "0.0000"}
+        disabled
+        />
+        </>
+      )}
+
+
         </div>
               <div>
-              {userBalance?.balance !== undefined
+          {/*      {userBalance?.balance !== undefined
         ? (Number(userBalance.balance.toString()) / LAMPORTS_PER_SOL).toFixed(6)
-        : "0.0000"}
+        : "0.0000"}*/}
              <Label htmlFor="bet-amount" className="text-white">
-                  Bet Amount (SOL1)
+                  {currency === "demo" ? (<>Bet Amount (DEMO)</>): currency === "chp" ? (<>Bet Amount (CHIPPY)</>):(<>Bet Amount (SOL)</>)}
                 </Label>
                 <Input
                   id="bet-amount"
