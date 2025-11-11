@@ -171,7 +171,7 @@ import { useProgram } from '@/lib/anchor7';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { BN } from '@project-serum/anchor';
-import Navbar from '@/components/Navbar';
+import Navbar from '@/components/Navbar1';
 import { motion } from 'framer-motion';
 import {
   AlertCircle, Trophy, Zap, DollarSign, Users, Clock, X,
@@ -939,68 +939,9 @@ export default function GamePage() {
   return (
     <>
 
-      <Navbar />
+     
       <div className="w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {!isMobile && <div className="lg:col-span-3 h-[500px]">
-          <GameChat currentMultiplier={gameState5.multiplier} gameState={gameState5.status} crashPoint={crashPoint} onCrash={resetGame} />
-        </div>}
-        <div className="lg:col-span-7">
-          <Card className="bg-black border-black">
-            <CardContent className="p-1">
-              <div className="flex justify-between items-center mb-4">
-                {!isMobile && <h2 className="text-2xl font-bold text-white">{gameState === "Crashed" ? "CRASHED!" : "Multiplier"}</h2>}
-                <div className="text-3xl font-mono font-bold text-green-400">{gameState5.multiplier}x</div>
-              </div>
-            
-             <PathAnimation 
-              currentMultiplier={gameState5.multiplier}
-              timer5={gameState5.timeRemaining}
-              onCashout={handleCashout}
-              dude55={isCashedOut}
-              dude56={currency}
-              betAmount={betAmount}
-              Gametimeremaining={gameState5.timeRemaining}
-              GameStatus={gameState5.status}
-              tValues={[]}
-             />
-              <GameHistory
-                pressed={pressed} 
-                gameState={gameState5.status} 
-                dude55={isCashedOut} 
-                isButtonPressed={isButtonPressed}
-                buttonPressCount={buttonPressCount}
-                currentMultiplier={gameState5.multiplier}
-                dude45={userCashedOut}
-                dude56a={isButtonPressed}
-                dude56b={buttonPressCount}
-                buttonPressCount2={buttonPressCount}
-              />
-            </CardContent>
-          </Card>
-        </div>
-        <Betbutton
-          isButtonPressed={isButtonPressed}
-          gametime={gameState5.timeRemaining}
-          gameState={gameState5.status}
-          currentMultiplier={gameState5.multiplier}
-          onStartGame={startGame}
-          onCashout={handleCashout}
-          userCashedOut={userCashedOut}
-          cashouts={cashouts}
-          multiplier={gameState5.multiplier}
-          dude45={handleUserCashedOut}
-          dude56={handleCurrencyChange}
-          dude56a={handleButtonClicked}
-          dude56b={buttonPressCount2}
-          sendToCrashGame3={sendToCrashGame3}
-          placeBetCounter={placebet123}
-        />
-        <ConfettiCanvas triggerConfetti={triggerConfetti} />
-      </div>
-      {!isMobile && <BetList />}
-      {isMobile && <Tabs gameState={gameState} crashPoint={crashPoint} onCrash={resetGame} />}
-    </div>
+      <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-purple-950 via-black to-pink-950 text-white p-6 pt-24">
         <div className="max-w-7xl mx-auto space-y-10">
 
@@ -1318,6 +1259,67 @@ export default function GamePage() {
           )}
         </div>
       </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {!isMobile && <div className="lg:col-span-3 h-[500px]">
+          <GameChat currentMultiplier={gameState5.multiplier} gameState={gameState5.status} crashPoint={crashPoint} onCrash={resetGame} />
+        </div>}
+        <div className="lg:col-span-7">
+          <Card className="bg-black border-black">
+            <CardContent className="p-1">
+              <div className="flex justify-between items-center mb-4">
+                {!isMobile && <h2 className="text-2xl font-bold text-white">{gameState === "Crashed" ? "CRASHED!" : "Multiplier"}</h2>}
+                <div className="text-3xl font-mono font-bold text-green-400">{gameState5.multiplier}x</div>
+              </div>
+            
+             <PathAnimation 
+              currentMultiplier={gameState5.multiplier}
+              timer5={gameState5.timeRemaining}
+              onCashout={handleCashout}
+              dude55={isCashedOut}
+              dude56={currency}
+              betAmount={betAmount}
+              Gametimeremaining={gameState5.timeRemaining}
+              GameStatus={gameState5.status}
+              tValues={[]}
+             />
+              <GameHistory
+                pressed={pressed} 
+                gameState={gameState5.status} 
+                dude55={isCashedOut} 
+                isButtonPressed={isButtonPressed}
+                buttonPressCount={buttonPressCount}
+                currentMultiplier={gameState5.multiplier}
+                dude45={userCashedOut}
+                dude56a={isButtonPressed}
+                dude56b={buttonPressCount}
+                buttonPressCount2={buttonPressCount}
+              />
+            </CardContent>
+          </Card>
+        </div>
+        <Betbutton
+          isButtonPressed={isButtonPressed}
+          gametime={gameState5.timeRemaining}
+          gameState={gameState5.status}
+          currentMultiplier={gameState5.multiplier}
+          onStartGame={startGame}
+          onCashout={handleCashout}
+          userCashedOut={userCashedOut}
+          cashouts={cashouts}
+          multiplier={gameState5.multiplier}
+          dude45={handleUserCashedOut}
+          dude56={handleCurrencyChange}
+          dude56a={handleButtonClicked}
+          dude56b={buttonPressCount2}
+          sendToCrashGame3={sendToCrashGame3}
+          placeBetCounter={placebet123}
+        />
+        <ConfettiCanvas triggerConfetti={triggerConfetti} />
+      </div>
+      {!isMobile && <BetList />}
+      {isMobile && <Tabs gameState={gameState} crashPoint={crashPoint} onCrash={resetGame} />}
+    </div>
+     
     </>
   );
 }
