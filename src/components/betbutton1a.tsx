@@ -610,7 +610,6 @@ Use demo currency to play our games without any risk. If you run out of demo cre
         <div className={styles.inputGroup}>
 					<Label>Sol Amount</Label>
 					<Input
-						placeholder="Sol amount"
 						type="number"
 						min="0"
 						value={userBalance}
