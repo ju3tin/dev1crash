@@ -400,12 +400,14 @@ const BezierAnimation: React.FC<GameVisualProps> = ({
     zIndex: 1,
   }}
 >
+  {/*
   <Image
     width={200}
     height={200}
     src="/explode1.svg"
     alt="Explosion effect"
   />
+  */}
 </div>
           <span
             style={{

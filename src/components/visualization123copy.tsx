@@ -448,12 +448,14 @@ timeLabels.forEach((time, index) => {
               position: "absolute",
             }}
           >
+            {/*
             <Image
               width={275}
               height={275}
               src="/explode1.svg"
               alt="Explosion effect"
             />
+            */}
           </span>
           <span
             style={{

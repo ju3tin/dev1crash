@@ -268,7 +268,7 @@ function animate() {
             display: 'block', 
             position: 'absolute',
           }}>
-            <Image width={275} height={275} src="/explode1.svg" alt="Explosion effect" />
+          {/*  <Image width={275} height={275} src="/explode1.svg" alt="Explosion effect" /> */}
           </span>
 
 
