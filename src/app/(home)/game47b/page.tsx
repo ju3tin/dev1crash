@@ -1217,7 +1217,7 @@ export default function GamePage() {
                 </motion.div>
               )}
 
-              {/* GAME HISTORY */}
+              {/* GAME HISTORY 
               {allGames.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10">
@@ -1246,7 +1246,7 @@ export default function GamePage() {
                   </div>
                 </motion.div>
               )}
-
+*/}
               {/* STATUS TOAST */}
               {status && (
                 <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
@@ -1313,6 +1313,7 @@ export default function GamePage() {
           dude56b={buttonPressCount2}
           sendToCrashGame3={sendToCrashGame3}
           placeBetCounter={placebet123}
+          userBalance={userBalance} // Added this line
         />
         <ConfettiCanvas triggerConfetti={triggerConfetti} />
       </div>

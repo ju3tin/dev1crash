@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 import { Tabs, Tab, CardBody } from "@nextui-org/react";
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { FaWallet } from "react-icons/fa";
 import { toast } from "sonner";
 import { Checkbox } from "@nextui-org/checkbox";
@@ -21,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { currencies } from "@/lib/currencies";
 import CurrencyList from "./CurrencyList1";
-import Userbalance1 from "@/components/userbalance2"
 import styles from "@/styles/components/GameControls.module.css";
 import { useState, useEffect, useRef } from "react";
 //import JSConfetti from "js-confetti";
@@ -49,6 +49,7 @@ type BetbuttonProps = {
   dude56a: (buttonClicked: boolean) => void;
   dude56b: (buttonPressCount: number) => void;
   sendToCrashGame3: (buttonPressCount: number) => void;
+  userBalance: any; // Add this line
 };
 
 const Betbutton = ({
@@ -65,13 +66,15 @@ const Betbutton = ({
   dude56,
   dude56a,
   dude56b,
-  
+
   //placeBetCounter,
   sendToCrashGame3,
+  userBalance, // Add this line
 }: BetbuttonProps) => {
   const [placeBetCounter, setPlaceBetCounter] = useState(0);
   const { pressed, setPressedToOne, setPressedToZero } = usePressedStore();
   const [setisButtonPressed] = useState(false);
+
   const [betgreaterthan0, setBetgreaterthan0] = useState(false);
   const [demoamountgreaterthan0, setDemoamountgreaterthan0] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -210,7 +213,7 @@ useEffect(() => {
     setCashon1(true);
 
     const current12 = multiplier;
-    console.log(`dude34 Current Multiplier: ${current12} using this 1235 ${currency}`);
+    console.log(`dude34 Current Multiplier: ${current12} using this 1235 ${currency} ${userBalance}`);
 
     // Send FINISH_BET message to server
     if (walletAddress) {
@@ -581,11 +584,13 @@ Use demo currency to play our games without any risk. If you run out of demo cre
 						value={demoAmount}
 						disabled
 					/>
+          
         </div>
               <div>
-              <Userbalance1 className="mb-6" />
-				
-                <Label htmlFor="bet-amount" className="text-white">
+              {userBalance?.balance !== undefined
+        ? (Number(userBalance.balance.toString()) / LAMPORTS_PER_SOL).toFixed(6)
+        : "0.0000"}
+             <Label htmlFor="bet-amount" className="text-white">
                   Bet Amount (SOL1)
                 </Label>
                 <Input
