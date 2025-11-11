@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { currencies } from "@/lib/currencies";
 import CurrencyList from "./CurrencyList1";
+import Userbalance1 from "@/components/userbalance2"
 import styles from "@/styles/components/GameControls.module.css";
 import { useState, useEffect, useRef } from "react";
 //import JSConfetti from "js-confetti";
@@ -580,8 +581,10 @@ Use demo currency to play our games without any risk. If you run out of demo cre
 						value={demoAmount}
 						disabled
 					/>
-				</div>
+        </div>
               <div>
+              <Userbalance1 className="mb-6" />
+				
                 <Label htmlFor="bet-amount" className="text-white">
                   Bet Amount (SOL1)
                 </Label>

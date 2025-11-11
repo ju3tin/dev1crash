@@ -10,7 +10,7 @@ import { Fish } from "lucide-react"
 //import BezierCurve from '@/components/labels12';
 import GameChat from "@/components/game-chat3a"
 import PathAnimation from '@/components/PathAnimation1';
-import Betbutton from "@/components/betbutton1a"
+import Betbutton from "@/components/betbutton1b"
 import BetList from "@/components/BetList1"
 import GameVisual from '@/components/visualization123';
 import GameHistory from '@/components/gamehistory';
