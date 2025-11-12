@@ -181,6 +181,7 @@ import {
 const PROGRAM_ID = new PublicKey("C3aRucgPgxHHD5nrT4busuTTnVmF55gqJwAccQwr8Qi4");
 
 export default function GamePage() {
+  const [overlayOpen, setOverlayOpen] = useState(false);
   const gameState5 = useGameStore((gameState5: GameState) => gameState5);
   const [isCashedOut, setIsCashedOut] = useState(false);
   const [newCount, setNewCount] = useState(0);
