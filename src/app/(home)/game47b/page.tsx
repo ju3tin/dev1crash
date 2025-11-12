@@ -1156,6 +1156,7 @@ useEffect(() => {
                             ADMIN WITHDRAW
                           </button>
                         </div>
+                        {/*
                         <div className="space-y-3">
                           <input placeholder="Add Bounty (SOL)" value={bountyAmt}
                             onChange={e => setBountyAmt(e.target.value)}
@@ -1165,6 +1166,7 @@ useEffect(() => {
                             ADD BOUNTY
                           </button>
                         </div>
+                        */}
                       </div>
 
                       {/* ---------- NEW ADMIN SETTINGS ---------- */}
