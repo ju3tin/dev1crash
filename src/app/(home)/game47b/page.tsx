@@ -1168,7 +1168,7 @@ useEffect(() => {
                       </div>
 
                       {/* ---------- NEW ADMIN SETTINGS ---------- */}
-                      <div className="mt-10 space-y-6 border-t border-white/20 pt-6">
+                    {/*  <div className="mt-10 space-y-6 border-t border-white/20 pt-6">*/}
                     {/*     <h3 className="text-2xl font-bold text-center">Program Settings</h3>*/}
 
                         {/* Change Admin */}
@@ -1205,7 +1205,7 @@ useEffect(() => {
                             RESUME PROGRAM
                           </button>
                         </div>*/}
-                      </div>
+                    {/*  </div>*/}
 
                       {/* ACTIVE BETS LIST */}
                       {activeBets.length > 0 && (
