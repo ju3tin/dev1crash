@@ -1095,15 +1095,20 @@ useEffect(() => {
 
               {/* ADMIN PANEL */}
               {isAdmin && (
+                <>
+                {/*
                 <motion.div initial={{ x: 120, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
                   className="bg-red-950/50 backdrop-blur-xl rounded-3xl p-8 border border-red-500/50 shadow-2xl">
+               */}
+                {/*
                   <h2 className="text-4xl font-black text-red-400 mb-8 text-center flex items-center justify-center gap-3">
                     <Trophy className="text-yellow-400" /> ADMIN CONTROL
                   </h2>
-
+*/}
                   {/* ---------- GAME CREATION ---------- */}
                   {!currentGame ? (
-                    <div className="grid md:grid-cols-2 gap-6">
+<>
+                 {/*   <div className="grid md:grid-cols-2 gap-6">
                       <input placeholder="Target Multiplier (e.g. 2.5)" value={targetMult}
                         onChange={e => setTargetMult(e.target.value)}
                         className="p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" />
@@ -1115,7 +1120,8 @@ useEffect(() => {
                         <RefreshCw className="w-6 h-6" />
                         {loading ? 'Creating...' : 'CREATE GAME'}
                       </button>
-                    </div>
+                    </div> */}
+</>
                   ) : (
                     <>
                    {/*  <div className="space-y-8"> */}
@@ -1236,7 +1242,8 @@ useEffect(() => {
                 {/*</div>*/}
                     </>
                   )}
-                </motion.div>
+               {/* </motion.div>*/}
+                </>
               )}
 
               {/* GAME HISTORY 
