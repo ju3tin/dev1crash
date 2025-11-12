@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import QRCode from "react-qr-code";
 import { Fish } from "lucide-react"
 //import BezierCurve from '@/components/labels12';
 import GameChat from "@/components/game-chat3a"
@@ -182,6 +183,9 @@ const PROGRAM_ID = new PublicKey("C3aRucgPgxHHD5nrT4busuTTnVmF55gqJwAccQwr8Qi4")
 
 export default function GamePage() {
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const [overlayTab, setOverlayTab] = useState<'sol' | 'chippy' | 'demo'>('sol');
+  const [overlaySubTab, setOverlaySubTab] = useState<'deposit' | 'withdraw'>('deposit');
+  const [overlayCopyStatus, setOverlayCopyStatus] = useState<'idle' | 'copied'>('idle');
   const gameState5 = useGameStore((gameState5: GameState) => gameState5);
   const [isCashedOut, setIsCashedOut] = useState(false);
   const [newCount, setNewCount] = useState(0);
@@ -226,9 +230,46 @@ useEffect(() => {
   }
 }, [overlayOpen]);
 
+  useEffect(() => {
+    if (overlayOpen) {
+      setOverlayTab('sol');
+      setOverlaySubTab('deposit');
+    }
+  }, [overlayOpen]);
+
+  useEffect(() => {
+    if (overlayOpen) {
+      setOverlayCopyStatus('idle');
+    }
+  }, [overlayTab, overlaySubTab, overlayOpen]);
+
   const handleOverlayChange = useCallback((visible: boolean) => {
     setOverlayOpen(visible);
   }, []);
+
+  const closeOverlay = useCallback(() => {
+    handleOverlayChange(false);
+  }, [handleOverlayChange]);
+
+  const handleCopyOverlayAddress = useCallback(() => {
+    const address =
+      overlayTab === 'sol'
+        ? 'DEPOSIT_SOL_ADDRESS'
+        : 'DEPOSIT_CHIPPY_ADDRESS';
+
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      console.warn('Clipboard API unavailable');
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(address)
+      .then(() => setOverlayCopyStatus('copied'))
+      .catch((err) => {
+        console.error('Failed to copy address', err);
+        setOverlayCopyStatus('idle');
+      });
+  }, [overlayTab]);
 
   useEffect(() => {
     if (pressed === 1 && !hasLogged) {
@@ -1113,7 +1154,140 @@ useEffect(() => {
       {!isMobile && <BetList />}
       {isMobile && <Tabs gameState={gameState} crashPoint={crashPoint} onCrash={resetGame} />}
     </div>
-     
+      {overlayOpen && (
+        <div className="fixed inset-0 z-[1000]">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={closeOverlay}
+            role="presentation"
+          />
+          <div className="relative z-10 flex h-full w-full items-center justify-center p-6">
+            <div className="max-w-2xl w-full rounded-3xl bg-neutral-900/95 border border-white/10 shadow-2xl p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">Wallet Options</h2>
+                <Button
+                  variant="ghost"
+                  className="text-neutral-300 hover:text-white hover:bg-white/10"
+                  onClick={closeOverlay}
+                >
+                  Close
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {(['sol', 'chippy', 'demo'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setOverlayTab(tab)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      overlayTab === tab
+                        ? 'bg-green-500 text-black'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {tab === 'sol' ? 'Sol' : tab === 'chippy' ? 'Chippy' : 'Demo'}
+                  </button>
+                ))}
+              </div>
+
+              {(overlayTab === 'sol' || overlayTab === 'chippy') && (
+                <div className="flex gap-3">
+                  {(['deposit', 'withdraw'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setOverlaySubTab(tab)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        overlaySubTab === tab
+                          ? 'bg-green-500 text-black'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {tab === 'deposit' ? 'Deposit' : 'Withdraw'}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="rounded-2xl bg-black/40 border border-white/10 p-6 space-y-6">
+                {overlayTab === 'demo' && (
+                  <div className="space-y-4 text-neutral-200">
+                    <h3 className="text-xl font-semibold text-white">Demo Balance</h3>
+                    <p className="text-sm text-neutral-300">
+                      Use demo currency to try the game without any real funds. Reset your demo balance from the bet panel whenever you need more credits.
+                    </p>
+                    <Button
+                      className="bg-green-600 hover:bg-green-500 text-black font-semibold"
+                      onClick={closeOverlay}
+                    >
+                      Return to Game
+                    </Button>
+                  </div>
+                )}
+
+                {(overlayTab === 'sol' || overlayTab === 'chippy') && overlaySubTab === 'deposit' && (
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-white">
+                      {overlayTab === 'sol' ? 'Deposit SOL' : 'Deposit CHIPPY'}
+                    </h3>
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="bg-white p-4 rounded-2xl">
+                        <QRCode
+                          value={overlayTab === 'sol' ? 'DEPOSIT_SOL_ADDRESS' : 'DEPOSIT_CHIPPY_ADDRESS'}
+                          size={180}
+                          style={{ width: '100%', height: 'auto' }}
+                        />
+                      </div>
+                      <p className="text-sm text-neutral-300 text-center break-all">
+                        {overlayTab === 'sol' ? 'DEPOSIT_SOL_ADDRESS' : 'DEPOSIT_CHIPPY_ADDRESS'}
+                      </p>
+                      <Button
+                        onClick={handleCopyOverlayAddress}
+                        className="bg-green-600 hover:bg-green-500 text-black font-semibold"
+                      >
+                        {overlayCopyStatus === 'copied' ? 'Copied!' : 'Copy Address'}
+                      </Button>
+                      <p className="text-xs text-neutral-400 text-center">
+                        Send only {overlayTab === 'sol' ? 'SOL' : 'CHIPPY'} to this address. Transfers are credited after confirmation on the blockchain.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {(overlayTab === 'sol' || overlayTab === 'chippy') && overlaySubTab === 'withdraw' && (
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-white">
+                      {overlayTab === 'sol' ? 'Withdraw SOL' : 'Withdraw CHIPPY'}
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-neutral-300">Amount</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.000001"
+                          placeholder={overlayTab === 'sol' ? 'Amount in SOL' : 'Amount in CHIPPY'}
+                          className="bg-black/60 border-white/10 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-neutral-300">Destination Address</Label>
+                        <Input
+                          type="text"
+                          placeholder={overlayTab === 'sol' ? 'Solana wallet address' : 'CHIPPY wallet address'}
+                          className="bg-black/60 border-white/10 text-white"
+                        />
+                      </div>
+                      <Button className="w-full bg-green-600 hover:bg-green-500 text-black font-semibold">
+                        Submit Withdrawal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
