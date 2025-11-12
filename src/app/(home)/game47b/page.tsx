@@ -196,6 +196,7 @@ export default function GamePage() {
   const [betAmount, setBetAmount] = useState("0.1");
   const [autoCashoutAt, setAutoCashoutAt] = useState("2");
   const [gameHistory, setGameHistory] = useState<number[]>([]);
+  const [onOverlayChange, setonOverlayChange] = useState(false);
   const [userCashedOut, setUserCashedOut] = useState(false);
   const [userWinnings, setUserWinnings] = useState(0);
   const [pathProgress, setPathProgress] = useState(0);
@@ -216,7 +217,11 @@ export default function GamePage() {
 
   const MAX_MULTIPLIER = 100;
   const GAME_DURATION_MS = 15000;
-
+useEffect(() =>{
+  if(onOverlayChange === true){
+console.log('justin is the god of east coast')
+  }
+})
   useEffect(() => {
     if (pressed === 1 && !hasLogged) {
       console.log('Pressed is 1 24 hours in checked');
@@ -410,7 +415,7 @@ export default function GamePage() {
 
   useEffect(() => {
     if (gameState5.status === "Crashed") {
-      console.log(`what is the life of a gangstar ${placeBetCounter}`);
+      console.log(`what is the life of a gangstar ${placeBetCounter} Im not leaving yet ${onOverlayChange}`);
       setGameHistory(prev => [gameState5.multiplier, ...prev].slice(0, 10));
     }
   }, [gameState5.status, gameState5.multiplier]);
