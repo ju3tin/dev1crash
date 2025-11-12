@@ -1159,10 +1159,10 @@ export default function GamePage() {
 
                       {/* ---------- NEW ADMIN SETTINGS ---------- */}
                       <div className="mt-10 space-y-6 border-t border-white/20 pt-6">
-                        <h3 className="text-2xl font-bold text-center">Program Settings</h3>
+                    {/*     <h3 className="text-2xl font-bold text-center">Program Settings</h3>*/}
 
                         {/* Change Admin */}
-                        <div className="grid md:grid-cols-2 gap-4">
+                     {/*     <div className="grid md:grid-cols-2 gap-4">
                           <input placeholder="New Admin Pubkey" value={adminSetAdmin}
                             onChange={e => setAdminSetAdmin(e.target.value)}
                             className="p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -1170,10 +1170,10 @@ export default function GamePage() {
                             className="p-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl font-bold hover:scale-105 transition">
                             SET NEW ADMIN
                           </button>
-                        </div>
+                        </div>*/}
 
                         {/* Fee BPS */}
-                        <div className="grid md:grid-cols-2 gap-4">
+                    {/*    <div className="grid md:grid-cols-2 gap-4">
                           <input type="number" placeholder="Fee (bps, 0-10,000)" value={adminSetFeeBps}
                             onChange={e => setAdminSetFeeBps(e.target.value)}
                             className="p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500" />
@@ -1182,9 +1182,10 @@ export default function GamePage() {
                             SET FEE BPS
                           </button>
                         </div>
+                         */}
 
                         {/* Pause / Resume */}
-                        <div className="flex justify-center gap-6">
+                       {/*  <div className="flex justify-center gap-6">
                           <button onClick={adminPauseProgram} disabled={loading}
                             className="px-8 py-3 bg-gradient-to-r from-red-700 to-orange-700 rounded-2xl font-bold hover:scale-105 transition">
                             PAUSE PROGRAM
@@ -1193,7 +1194,7 @@ export default function GamePage() {
                             className="px-8 py-3 bg-gradient-to-r from-green-700 to-emerald-700 rounded-2xl font-bold hover:scale-105 transition">
                             RESUME PROGRAM
                           </button>
-                        </div>
+                        </div>*/}
                       </div>
 
                       {/* ACTIVE BETS LIST */}
