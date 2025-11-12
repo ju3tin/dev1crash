@@ -1245,11 +1245,18 @@ useEffect(() => {
                          
                          </>
                         ) : (
-                          <QRCode
-                            value='DEPOSIT_CHIPPY_ADDRESS'
-                            size={180}
-                            style={{ width: '100%', height: 'auto' }}
-                          />
+                          <>
+                          <input type="number" step="0.000001" min="0.000001"
+                          placeholder="Deposit (CHIPPY)" value={depositAmt}
+                          onChange={e => setDepositAmt(e.target.value)}
+                          className="w-full p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                        <button onClick={deposit} disabled={loading || !depositAmt}
+                          className="w-full p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                          <ArrowDown className="w-5 h-5" />
+                          {loading ? '...' : 'DEPOSIT'}
+                        </button>
+                         
+                         </>
                         )
                         }
                       
@@ -1270,36 +1277,34 @@ useEffect(() => {
                   </div>
                 )}
 
-                {(overlayTab === 'sol' || overlayTab === 'chippy') && overlaySubTab === 'withdraw' && (
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-white">
-                      {overlayTab === 'sol' ? 'Withdraw SOL' : 'Withdraw CHIPPY'}
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label className="text-neutral-300">Amount</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.000001"
-                          placeholder={overlayTab === 'sol' ? 'Amount in SOL' : 'Amount in CHIPPY'}
-                          className="bg-black/60 border-white/10 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-neutral-300">Destination Address</Label>
-                        <Input
-                          type="text"
-                          placeholder={overlayTab === 'sol' ? 'Solana wallet address' : 'CHIPPY wallet address'}
-                          className="bg-black/60 border-white/10 text-white"
-                        />
-                      </div>
-                      <Button className="w-full bg-green-600 hover:bg-green-500 text-black font-semibold">
-                        Submit Withdrawal
-                      </Button>
-                    </div>
-                  </div>
+                {(overlayTab === 'sol') && overlaySubTab === 'withdraw' && (
+                    
+                    <>
+                    <input type="number" step="0.000001" min="0.000001"
+                    placeholder="Withdraw (SOL)" value={withdrawAmt}
+                    onChange={e => setWithdrawAmt(e.target.value)}
+                    className="w-full p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  <button onClick={withdraw} disabled={loading || !withdrawAmt}
+                    className="w-full p-4 bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                    <ArrowUp className="w-5 h-5" />
+                    {loading ? '...' : 'WITHDRAW'}
+                  </button>
+                  </>
                 )}
+                  {(overlayTab === 'chippy') && overlaySubTab === 'withdraw' && (
+
+                    <>
+                    <input type="number" step="0.000001" min="0.000001"
+                    placeholder="Withdraw (CHIPPY)" value={withdrawAmt}
+                    onChange={e => setWithdrawAmt(e.target.value)}
+                    className="w-full p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                  <button onClick={withdraw} disabled={loading || !withdrawAmt}
+                    className="w-full p-4 bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                    <ArrowUp className="w-5 h-5" />
+                    {loading ? '...' : 'WITHDRAW'}
+                  </button>
+                  </>
+                  )}
               </div>
             </div>
           </div>
