@@ -1081,7 +1081,8 @@ useEffect(() => {
 
               {/* LIVE MULTIPLIER */}
               {currentGame && (
-                {/*
+             <>
+             {/*
                 <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
                   <div className={`text-9xl font-black transition-all ${isAnimating ? 'text-green-400' : currentGame.crashed ? 'text-red-400' : 'text-yellow-400'} drop-shadow-lg`}>
                     {(multiplier / 100).toFixed(2)}x
@@ -1093,6 +1094,7 @@ useEffect(() => {
                   </div>
                 </motion.div>
                 */}
+                </>
               )}
 
               {/* ADMIN PANEL */}
