@@ -30,6 +30,7 @@ import WalletLoginOverlay from './WalletLoginOverlay';
 
 
 type BetbuttonProps = {
+  onOverlayChange?: (visible: boolean) => void;
   isButtonPressed: boolean;
   gametime: number;
   gameState: "Waiting" | "Running" | "Crashed" | "Unknown" | "Stopped";
@@ -66,7 +67,7 @@ const Betbutton = ({
   dude56,
   dude56a,
   dude56b,
-
+  onOverlayChange,
   //placeBetCounter,
   sendToCrashGame3,
   userBalance, // Add this line
@@ -121,7 +122,11 @@ const Betbutton = ({
       setWalletOverlayVisible(true);
       return;
     }
-    setOverlayVisible(!overlayVisible);
+    const newVisible = !overlayVisible;
+    setOverlayVisible(newVisible);
+  
+    // ← NEW
+    onOverlayChange?.(newVisible);
   };
 
   const toggleWalletOverlay = () => {
