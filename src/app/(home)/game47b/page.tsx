@@ -1230,12 +1230,29 @@ useEffect(() => {
                       {overlayTab === 'sol' ? 'Deposit SOL' : 'Deposit CHIPPY'}
                     </h3>
                     <div className="flex flex-col items-center gap-4">
-                      <div className="bg-white p-4 rounded-2xl">
-                        <QRCode
-                          value={overlayTab === 'sol' ? 'DEPOSIT_SOL_ADDRESS' : 'DEPOSIT_CHIPPY_ADDRESS'}
-                          size={180}
-                          style={{ width: '100%', height: 'auto' }}
-                        />
+                      <div className="bg-black p-4 rounded-2xl">
+                        {overlayTab === 'sol' ? (
+                         <>
+                          <input type="number" step="0.000001" min="0.000001"
+                          placeholder="Deposit (SOL)" value={depositAmt}
+                          onChange={e => setDepositAmt(e.target.value)}
+                          className="w-full p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                        <button onClick={deposit} disabled={loading || !depositAmt}
+                          className="w-full p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                          <ArrowDown className="w-5 h-5" />
+                          {loading ? '...' : 'DEPOSIT'}
+                        </button>
+                         
+                         </>
+                        ) : (
+                          <QRCode
+                            value='DEPOSIT_CHIPPY_ADDRESS'
+                            size={180}
+                            style={{ width: '100%', height: 'auto' }}
+                          />
+                        )
+                        }
+                      
                       </div>
                       <p className="text-sm text-neutral-300 text-center break-all">
                         {overlayTab === 'sol' ? 'DEPOSIT_SOL_ADDRESS' : 'DEPOSIT_CHIPPY_ADDRESS'}
