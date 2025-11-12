@@ -1119,6 +1119,7 @@ useEffect(() => {
                   ) : (
                     <div className="space-y-8">
                       {/* ---------- ADMIN BET ---------- */}
+                      {/*
                       <div className="grid md:grid-cols-2 gap-6">
                         <input placeholder="User Pubkey (optional)" value={betUser}
                           onChange={e => setBetUser(e.target.value)}
@@ -1132,7 +1133,7 @@ useEffect(() => {
                           {loading ? 'Placing...' : 'PLACE BET (admin)'}
                         </button>
                       </div>
-
+ */}
                       {/* ---------- RESOLVE ---------- */}
                       {/*
                       <div className="flex items-center justify-center gap-6">
