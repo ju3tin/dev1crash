@@ -1117,7 +1117,8 @@ useEffect(() => {
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-8">
+                    <>
+                   {/*  <div className="space-y-8"> */}
                       {/* ---------- ADMIN BET ---------- */}
                       {/*
                       <div className="grid md:grid-cols-2 gap-6">
@@ -1214,7 +1215,9 @@ useEffect(() => {
 
                       {/* ACTIVE BETS LIST */}
                       {activeBets.length > 0 && (
-                        <div className="mt-8">
+                        <>
+                      {/*
+                      <div className="mt-8">
                           <h3 className="text-2xl font-bold mb-4 flex items-center gap-2"><Clock /> Active Bets ({activeBets.length})</h3>
                           <div className="space-y-3 max-h-64 overflow-y-auto">
                             {activeBets.map((bet, i) => (
@@ -1227,8 +1230,11 @@ useEffect(() => {
                             ))}
                           </div>
                         </div>
+                        */}
+                        </>
                       )}
-                    </div>
+                {/*</div>*/}
+                    </>
                   )}
                 </motion.div>
               )}
