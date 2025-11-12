@@ -979,13 +979,9 @@ useEffect(() => {
 */}
                 {!userBalance ? (
                   <div className="grid md:grid-cols-2 gap-4">
-                    <button onClick={initialize} disabled={loading}
-                      className="p-4 bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
-                      <AlertCircle className="w-5 h-5" />
-                      {loading ? '...' : 'INITIALIZE'}
-                    </button>
+                  
                     <button onClick={createUser} disabled={loading}
-                      className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                      className="col-span-2 p-5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-xl hover:scale-105 transition flex items-center justify-center gap-2">
                       <Users className="w-5 h-5" />
                       {loading ? '...' : 'CREATE USER'}
                     </button>
