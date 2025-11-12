@@ -217,11 +217,15 @@ export default function GamePage() {
 
   const MAX_MULTIPLIER = 100;
   const GAME_DURATION_MS = 15000;
-useEffect(() =>{
-  if(onOverlayChange === true){
-console.log('justin is the god of east coast')
+
+
+useEffect(() => {
+  if (onOverlayChange === false) {
+    console.log('Overlay is now CLOSED');
+    // You can add any other logic here
   }
-})
+}, [onOverlayChange]); // Only re-run when overlayOpen changes
+
   useEffect(() => {
     if (pressed === 1 && !hasLogged) {
       console.log('Pressed is 1 24 hours in checked');
