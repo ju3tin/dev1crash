@@ -969,6 +969,7 @@ useEffect(() => {
           (
             <>
               {/* PLAYER PANEL */}
+              
               <motion.div initial={{ x: -120, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
                 className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
@@ -1028,53 +1029,10 @@ useEffect(() => {
                     </div>
 
                     {/* USER BET INPUT */}
-                    {currentGame && (
-                      <div className="mt-6">
-                        <input type="number" step="0.000001" min="0.000001"
-                          placeholder="Your Bet Amount (SOL)" value={betAmt}
-                          onChange={e => setBetAmt(e.target.value)}
-                          className="w-full p-4 bg-white/10 rounded-2xl text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        <button onClick={placeUserBet} disabled={loading || !betAmt || userBalance?.hasActiveBet}
-                          className="mt-3 w-full p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl font-bold text-lg hover:scale-105 transition flex items-center justify-center gap-2">
-                          <Send className="w-5 h-5" />
-                          {loading ? 'Placing...' : 'PLACE MY BET'}
-                        </button>
-                      </div>
-                    )}
+                  
 
                     {/* MY BETS WITH PAYOUT & CLAIM */}
-                    {myBets.length > 0 && (
-                      <div className="mt-6">
-                        <h3 className="text-xl font-bold mb-4">My Bets</h3>
-                        <div className="space-y-2">
-                          {myBets.map((bet, i) => (
-                            <div key={i} className="bg-white/10 p-3 rounded-xl flex justify-between items-center">
-                              <div>
-                                <span className="font-mono">
-                                  {(Number(bet.amount.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL
-                                </span>
-                                {bet.payoutAmount?.gt(new BN(0)) && (
-                                  <span className="text-green-400 ml-2">
-                                    → {(Number(bet.payoutAmount.toString()) / LAMPORTS_PER_SOL).toFixed(6)} SOL
-                                  </span>
-                                )}
-                              </div>
-                              {bet.claimed ? (
-                                <CheckCircle className="w-5 h-5 text-green-400" />
-                              ) : bet.payoutAmount?.gt(new BN(0)) ? (
-                                <button onClick={() => claimPayout(bet)}
-                                  className="px-3 py-1 bg-green-600 rounded text-sm"
-                                  disabled={loading}>
-                                  Claim
-                                </button>
-                              ) : (
-                                <span className="text-orange-400">Active</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                   
                   </div>
                 )}
               </motion.div>
