@@ -1134,6 +1134,7 @@ useEffect(() => {
                       </div>
 
                       {/* ---------- RESOLVE ---------- */}
+                      {/*
                       <div className="flex items-center justify-center gap-6">
                         <label className="flex items-center gap-3 cursor-pointer text-xl">
                           <input type="checkbox" checked={crashNow} onChange={e => setCrashNow(e.target.checked)} className="w-6 h-6" />
@@ -1144,7 +1145,7 @@ useEffect(() => {
                           {loading ? '...' : 'RESOLVE & AUTO-START'} <Zap />
                         </button>
                       </div>
-
+                      */}
                       {/* ---------- VAULT & BOUNTY ---------- */}
                       {/*
                       <div className="grid md:grid-cols-2 gap-6 mt-8">
