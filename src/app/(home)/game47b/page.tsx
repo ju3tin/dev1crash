@@ -1146,6 +1146,7 @@ useEffect(() => {
                       </div>
 
                       {/* ---------- VAULT & BOUNTY ---------- */}
+                      {/*
                       <div className="grid md:grid-cols-2 gap-6 mt-8">
                         <div className="space-y-3">
                           <input placeholder="Withdraw from Vault (SOL)" value={adminWithdrawAmt}
@@ -1155,7 +1156,7 @@ useEffect(() => {
                             className="w-full p-4 bg-gradient-to-r from-orange-500 to-amber-600 rounded-2xl font-bold text-lg hover:scale-105 transition">
                             ADMIN WITHDRAW
                           </button>
-                        </div>
+                        </div>*/}
                         {/*
                         <div className="space-y-3">
                           <input placeholder="Add Bounty (SOL)" value={bountyAmt}
@@ -1167,7 +1168,7 @@ useEffect(() => {
                           </button>
                         </div>
                         */}
-                      </div>
+                    {/*  </div> */}
 
                       {/* ---------- NEW ADMIN SETTINGS ---------- */}
                     {/*  <div className="mt-10 space-y-6 border-t border-white/20 pt-6">*/}
