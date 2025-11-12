@@ -197,7 +197,6 @@ export default function GamePage() {
   const [betAmount, setBetAmount] = useState("0.1");
   const [autoCashoutAt, setAutoCashoutAt] = useState("2");
   const [gameHistory, setGameHistory] = useState<number[]>([]);
-  const [onOverlayChange, setonOverlayChange] = useState(false);
   const [userCashedOut, setUserCashedOut] = useState(false);
   const [userWinnings, setUserWinnings] = useState(0);
   const [pathProgress, setPathProgress] = useState(0);
@@ -221,11 +220,15 @@ export default function GamePage() {
 
 
 useEffect(() => {
-  if (onOverlayChange === false) {
+  if (!overlayOpen) {
     console.log('Overlay is now CLOSED');
     // You can add any other logic here
   }
-}, [onOverlayChange]); // Only re-run when overlayOpen changes
+}, [overlayOpen]);
+
+  const handleOverlayChange = useCallback((visible: boolean) => {
+    setOverlayOpen(visible);
+  }, []);
 
   useEffect(() => {
     if (pressed === 1 && !hasLogged) {
@@ -420,7 +423,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (gameState5.status === "Crashed") {
-      console.log(`what is the life of a gangstar ${placeBetCounter} Im not leaving yet ${onOverlayChange}`);
+      console.log(`what is the life of a gangstar ${placeBetCounter} Im not leaving yet ${overlayOpen}`);
       setGameHistory(prev => [gameState5.multiplier, ...prev].slice(0, 10));
     }
   }, [gameState5.status, gameState5.multiplier]);
@@ -1103,6 +1106,7 @@ useEffect(() => {
           sendToCrashGame3={sendToCrashGame3}
           placeBetCounter={placebet123}
           userBalance={userBalance} // Added this line
+          onOverlayChange={handleOverlayChange}
         />
         <ConfettiCanvas triggerConfetti={triggerConfetti} />
       </div>
