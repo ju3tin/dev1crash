@@ -79,6 +79,7 @@ const Betbutton = ({
   const [betgreaterthan0, setBetgreaterthan0] = useState(false);
   const [demoamountgreaterthan0, setDemoamountgreaterthan0] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
+  const [overlayVisible1, setOverlayVisible1] = useState(false);
   const [walletOverlayVisible, setWalletOverlayVisible] = useState(false);
   const [betAmount, setBetAmount] = useState("0.1");
   const [autoCashoutAt, setAutoCashoutAt] = useState("2");
@@ -437,7 +438,7 @@ useEffect(() => {
           <audio ref={audioRef} src="/sounds/cheering.mp3" /> {/* Add your MP3 file path here */}
           <audio ref={audioRef1} src="/sounds/losing.mp3" /> {/* Add your MP3 file path here */}
         <Card className="bg-black border-black">
-        {overlayVisible && (
+        {overlayVisible1 && (
 		 <div className="overlay">
 		   <div className="message-board-container">
 			 <div className="message-form">
