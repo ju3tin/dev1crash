@@ -954,12 +954,12 @@ useEffect(() => {
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-purple-950 via-black to-pink-950 text-white p-6 pt-24">
         <div className="max-w-7xl mx-auto space-y-10">
-
+{/*
           <motion.h1 initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
             className="text-7xl font-black text-center bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent">
             CRASH GAME
           </motion.h1>
-
+*/}
           {!connected ? (
             <div className="text-center p-10 bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20">
               <Wallet className="w-16 h-16 mx-auto text-yellow-400 mb-4" />
