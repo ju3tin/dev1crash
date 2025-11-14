@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { useProgram } from '@/lib/anchor7';
-import SideNav from '@/components/side-nav'; 
+import SideNav from '@/components/side-nav1'; 
 import ContextProvider from '@/components/context-provider';
 import Head from 'next/head'
 import { Analytics } from "@vercel/analytics/react";

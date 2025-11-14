@@ -667,18 +667,7 @@ useEffect(() => {
   // === ON-CHAIN INSTRUCTIONS (EXISTING + NEW) ===
   // ==============================================================
 
-  const initialize = async () => {
-    if (!program || !wallet || !configPda || !vaultPda) return;
-    setLoading(true);
-    try {
-      const tx = await program.methods.initialize(wallet)
-        .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Config initialized!');
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
+  
 
   const createUser = async () => {
     if (!program || !wallet || !userPda) return;
@@ -728,95 +717,11 @@ useEffect(() => {
     finally { setLoading(false); }
   };
 
-  const createGame = async () => {
-    if (!program || !wallet) return;
-    const mult = Math.floor(parseFloat(targetMult) * 100);
-    if (mult < 100 || mult > 10000) return showStatus('error', '1.0x - 100x');
+  
 
-    const createdAtSec = Math.floor(Date.now() / 1000);
-    const seed = new Uint32Array([createdAtSec]);
-    const seedBytes = Buffer.from(seed.buffer);
-    const [gamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), seedBytes], PROGRAM_ID);
+  
 
-    setLoading(true);
-    try {
-      const tx = await program.methods.createGame(new BN(mult), gameName, createdAtSec)
-        .accounts({ gameState: gamePda, signer: wallet, systemProgram: SystemProgram.programId })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Game created!');
-      loadAllGames();
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
-
-  const placeUserBet = async () => {
-    if (!program || !wallet || !currentGame || !betAmt || !userPda) return;
-    const lamports = Math.floor(parseFloat(betAmt) * LAMPORTS_PER_SOL);
-    if (lamports < 1000) return showStatus('error', 'Min: 0.000001 SOL');
-
-    const [betPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('bet'), wallet.toBytes(), currentGame.gameId.toBytes()],
-      PROGRAM_ID
-    );
-
-    setLoading(true);
-    try {
-      const tx = await program.methods.placeBet(new BN(lamports))
-        .accounts({
-          bet: betPda,
-          userBalance: userPda,
-          gameState: currentGame.gameId,
-          signer: wallet,
-          systemProgram: SystemProgram.programId,
-        })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Bet placed!');
-      setBetAmt('');
-      loadActiveBets(currentGame.gameId);
-      loadMyBets(currentGame.gameId);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
-
-  const placeAdminBet = async () => {
-    if (!program || !wallet || !currentGame || !betAmt) return;
-    const lamports = Math.floor(parseFloat(betAmt) * LAMPORTS_PER_SOL);
-    if (lamports < 1000) return showStatus('error', 'Min: 0.000001 SOL');
-
-    let targetUser = wallet;
-    if (betUser) {
-      try { targetUser = new PublicKey(betUser); }
-      catch { return showStatus('error', 'Invalid pubkey'); }
-    }
-
-    const [userBalancePda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('user_balance'), targetUser.toBytes()], PROGRAM_ID
-    );
-    const [betPda] = PublicKey.findProgramAddressSync(
-      [Buffer.from('bet'), targetUser.toBytes(), currentGame.gameId.toBytes()], PROGRAM_ID
-    );
-
-    setLoading(true);
-    try {
-      const tx = await program.methods.placeBet(new BN(lamports))
-        .accounts({
-          bet: betPda,
-          userBalance: userBalancePda,
-          gameState: currentGame.gameId,
-          signer: wallet,
-          systemProgram: SystemProgram.programId,
-        })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Bet placed!');
-      setBetUser(''); setBetAmt('');
-      loadActiveBets(currentGame.gameId);
-      if (targetUser.toBase58() === wallet.toBase58()) loadMyBets(currentGame.gameId);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
+  
 
   const claimPayout = async (bet: any) => {
     if (!program || !wallet || !userPda) return;
@@ -837,154 +742,13 @@ useEffect(() => {
     finally { setLoading(false); }
   };
 
-  const resolveGame = async () => {
-    if (!program || !wallet || !currentGame || !vaultPda) return;
-    setLoading(true);
-    setIsAnimating(false);
-    try {
-      const allBets = await program.account.bet.all();
-      const gameBets = allBets.filter(b => b.account.gameId.toBase58() === currentGame.gameId.toBase58());
+  
 
-      const remaining: any[] = [];
-      for (const bet of gameBets) {
-        const betAcc = bet.publicKey;
-        const userPda = PublicKey.findProgramAddressSync([Buffer.from('user_balance'), bet.account.user.toBytes()], PROGRAM_ID)[0];
-        remaining.push({ pubkey: betAcc, isSigner: false, isWritable: true });
-        remaining.push({ pubkey: userPda, isSigner: false, isWritable: true });
-      }
-
-      const tx = await program.methods.resolveGame(crashNow)
-        .accounts({ gameState: currentGame.gameId, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
-        .remainingAccounts(remaining)
-        .transaction();
-
-      await sendTransaction(tx, connection);
-      showStatus('success', crashNow ? 'CRASHED!' : 'WINNERS PAID!');
-
-      // AUTO-CREATE NEXT GAME
-      setTimeout(async () => {
-        const nextMult = 200 + Math.floor(Math.random() * 300);
-        const name = `Crash #${Date.now().toString().slice(-4)}`;
-        const createdAtSec = Math.floor(Date.now() / 1000);
-        const seed = new Uint32Array([createdAtSec]);
-        const seedBytes = Buffer.from(seed.buffer);
-        const [newGamePda] = PublicKey.findProgramAddressSync([Buffer.from('game'), seedBytes], PROGRAM_ID);
-
-        try {
-          const newTx = await program.methods.createGame(new BN(nextMult), name, createdAtSec)
-            .accounts({ gameState: newGamePda, signer: wallet, systemProgram: SystemProgram.programId })
-            .transaction();
-          await sendTransaction(newTx, connection);
-          showStatus('success', `New game: ${name}`);
-          loadAllGames();
-        } catch (e: any) { showStatus('error', 'Auto-game failed'); }
-      }, 3000);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); setCrashNow(false); }
-  };
-
-  const adminWithdraw = async () => {
-    if (!program || !wallet || !configPda || !vaultPda || !adminWithdrawAmt) return;
-    const lamports = Math.floor(parseFloat(adminWithdrawAmt) * LAMPORTS_PER_SOL);
-    if (lamports < 1000) return showStatus('error', 'Min: 0.000001 SOL');
-    setLoading(true);
-    try {
-      const tx = await program.methods.adminWithdraw(new BN(lamports))
-        .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Admin withdrawal complete!');
-      setAdminWithdrawAmt('');
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
-
-  const adminDepositBounty = async () => {
-    if (!program || !wallet || !configPda || !vaultPda || !bountyAmt) return;
-    const lamports = Math.floor(parseFloat(bountyAmt) * LAMPORTS_PER_SOL);
-    if (lamports < 1000) return showStatus('error', 'Min: 0.000001 SOL');
-    setLoading(true);
-    try {
-      const tx = await program.methods.adminDepositBounty(new BN(lamports))
-        .accounts({ config: configPda, vault: vaultPda, signer: wallet, systemProgram: SystemProgram.programId })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Bounty added!');
-      setBountyAmt('');
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
+  
 
   // ------------------- NEW ADMIN FUNCTIONS -------------------
 
-  /** Change the admin address */
-  const adminSetNewAdmin = async () => {
-    if (!program || !wallet || !configPda || !adminSetAdmin) return;
-    let newAdmin: PublicKey;
-    try { newAdmin = new PublicKey(adminSetAdmin); }
-    catch { return showStatus('error', 'Invalid pubkey'); }
-
-    setLoading(true);
-    try {
-      const tx = await program.methods.adminSetAdmin(newAdmin)
-        .accounts({ config: configPda, signer: wallet })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'New admin set!');
-      setAdminSetAdmin('');
-      setTimeout(loadConfig, 2000);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
-
-  /** Update fee (basis points) */
-  const adminSetFee = async () => {
-    if (!program || !wallet || !configPda || !adminSetFeeBps) return;
-    const bps = parseInt(adminSetFeeBps, 10);
-    if (isNaN(bps) || bps < 0 || bps > 10_000) return showStatus('error', '0-10,000 bps');
-
-    setLoading(true);
-    try {
-      const tx = await program.methods.adminSetFeeBps(bps)
-        .accounts({ config: configPda, signer: wallet })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', `Fee set to ${bps} bps`);
-      setAdminSetFeeBps('');
-      setTimeout(loadConfig, 2000);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
-
-  /** Pause the whole program */
-  const adminPauseProgram = async () => {
-    if (!program || !wallet || !configPda) return;
-    setLoading(true);
-    try {
-      const tx = await program.methods.adminPause()
-        .accounts({ config: configPda, signer: wallet })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Program paused');
-      setTimeout(loadConfig, 2000);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
-
-  /** Resume the program */
-  const adminResumeProgram = async () => {
-    if (!program || !wallet || !configPda) return;
-    setLoading(true);
-    try {
-      const tx = await program.methods.adminResume()
-        .accounts({ config: configPda, signer: wallet })
-        .transaction();
-      await sendTransaction(tx, connection);
-      showStatus('success', 'Program resumed');
-      setTimeout(loadConfig, 2000);
-    } catch (e: any) { showStatus('error', e.message); }
-    finally { setLoading(false); }
-  };
+  
 
   // ==============================================================
   // === UI RENDERING ===
@@ -995,7 +759,7 @@ useEffect(() => {
 
      
       <div className="w-full">
-      <Navbar />
+     
       
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {!isMobile && <div className="lg:col-span-3 h-[500px]">
@@ -1210,6 +974,14 @@ useEffect(() => {
                   </button>
                   </>
                   )}
+                  {/* toast errors and replies from the server */}
+                   {status && (
+                <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                  className={`fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-96 flex items-center gap-3 p-5 rounded-2xl text-xl font-bold ${status.type === 'error' ? 'bg-red-900/70 text-red-300' : 'bg-green-900/70 text-green-300'} backdrop-blur shadow-2xl`}>
+                  {status.type === 'error' ? <X className="w-6 h-6" /> : <Trophy className="w-6 h-6" />}
+                  {status.msg}
+                </motion.div>
+              )}
               </div>
             </div>
           </div>

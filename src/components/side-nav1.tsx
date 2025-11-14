@@ -1,14 +1,6 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
-import Iconwallet from '@/images/crypto-wallet.svg';
-
-import WalletContextProvider from "@/providers/WalletContextProvider";
-import {
-    ConnectionProvider,
-    WalletProvider,
-  } from "@solana/wallet-adapter-react";
-
 import Link from 'next/link';
 import LoginButton from './login-button1';
 import {
@@ -23,7 +15,15 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 //import { ThemeToggle } from '@/components/theme-toggle';
 
-export default function SideNav() {
+type SideNavProps = {
+  ismounted?: (mounted: boolean) => void;
+}
+
+const SideNav = ({
+  ismounted
+}: SideNavProps) => {
+ 
+
   const navItems = NavItems();
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
@@ -50,11 +50,6 @@ export default function SideNav() {
     setIsSidebarExpanded(!isSidebarExpanded);
   };
 
-  // Define the function to handle wallet connection
-  const handleWalletConnect = (address: string) => {
-    console.log("Connected wallet address:", address);
-    // Additional logic can be added here
-  };
 
   return (
     <div className="prdog">
@@ -89,10 +84,7 @@ export default function SideNav() {
                     {/*    <img src='/dude1.svg' alt="icon" />
               <button className="wallet-adapter-button wallet-adapter-button-trigger" tabIndex={0} type="button" style={{pointerEvents:'auto'}}>Select Wallet</button>
 */}
-                <WalletContextProvider>
-         <LoginButton />
-        {/* <Header /> */} 
-              </WalletContextProvider>
+                <LoginButton />
             </div>
           </div>
           {/* Bottom */}
@@ -188,3 +180,5 @@ export const SideNavItem: React.FC<{
     </>
   );
 };
+
+export default SideNav;

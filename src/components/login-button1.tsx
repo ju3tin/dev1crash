@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
   ConnectionProvider,
@@ -19,16 +19,21 @@ import { useWalletStore } from "@/store/walletstore1";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 function CustomWalletButton() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
-    <WalletMultiButton
+    mounted && <WalletMultiButton
       style={{ fontSize: "14px" }}
       className="custom-wallet-button"
-    >
-      <Wallet className="w-5 h-5 mr-2" />
-      Select Wallet
-    </WalletMultiButton>
-  );
-}
+      >
+        <Wallet className="w-5 h-5 mr-2" />
+        Select Wallet
+      </WalletMultiButton>
+    )
+  
+};
 
 function WalletButtonWrapper() {
   const { connected, publicKey } = useWallet();
@@ -115,6 +120,12 @@ function WalletButtonWrapper() {
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   useEffect(() => {
     if (connected && publicKey) {
       const address = publicKey.toBase58();
