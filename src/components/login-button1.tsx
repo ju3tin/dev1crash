@@ -166,7 +166,8 @@ function WalletButtonWrapper() {
   return connected ? <WalletMultiButton /> : <CustomWalletButton />;
 }
 
-function LoginButton() {
+// Export the provider so it can wrap the entire app
+export function LoginWalletProvider({ children }: { children: React.ReactNode }) {
   const network = "https://rpc.test.honeycombprotocol.com";
   const endpoint = useMemo(() => network, []);
 
@@ -179,11 +180,15 @@ function LoginButton() {
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <WalletButtonWrapper />
+          {children}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
+}
+
+function LoginButton() {
+  return <WalletButtonWrapper />;
 }
 
 export default LoginButton;

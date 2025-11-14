@@ -1,19 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-
 export default function Navbar() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <nav>
-        {mounted && <WalletMultiButton />}
+      {/* Wallet connection is handled by login-button1.tsx in side-nav1.tsx */}
     </nav>
   );
 }

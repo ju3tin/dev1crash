@@ -2,17 +2,13 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { useProgram } from '@/lib/anchor7';
 import SideNav from '@/components/side-nav1'; 
 import ContextProvider from '@/components/context-provider';
 import Head from 'next/head'
 import { Analytics } from "@vercel/analytics/react";
 import Header from './header';
-import { WalletProvider } from "@/wallet-provider"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { BN } from '@project-serum/anchor';
+import { LoginWalletProvider } from "@/components/login-button1"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -39,7 +35,7 @@ export default function RootLayout({
         <div className="flex">
         <SideNav />
         <ErrorBoundary>
-          <WalletProvider>{children}</WalletProvider>
+          <LoginWalletProvider>{children}</LoginWalletProvider>
         </ErrorBoundary>
         <Analytics />
         </div>
