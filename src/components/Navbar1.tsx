@@ -13,7 +13,6 @@ export default function Navbar() {
 
   return (
     <nav>
-     
         {mounted && <WalletMultiButton />}
     </nav>
   );

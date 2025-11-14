@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import Iconwallet from '@/images/crypto-wallet.svg';
-
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import WalletContextProvider from "@/providers/WalletContextProvider";
 import {
     ConnectionProvider,
@@ -24,6 +24,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 //import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function SideNav() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const navItems = NavItems();
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
@@ -93,6 +97,7 @@ export default function SideNav() {
          <LoginButton />
         {/* <Header /> */} 
               </WalletContextProvider>
+              {mounted && <WalletMultiButton />}
             </div>
           </div>
           {/* Bottom */}
