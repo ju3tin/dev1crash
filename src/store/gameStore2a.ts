@@ -215,11 +215,11 @@ interface ServerMessage {
 }
 
 export const useGameStore = create<GameState>((set, get) => {
-	const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
+	const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL2!, {
 		withCredentials: true
 	});
 
-	const socket1 = new WebSocket(process.env.NEXT_PUBLIC_CRASH_SERVER!);
+	const socket1 = new WebSocket(process.env.NEXT_PUBLIC_CRASH_SERVER2!);
 
 
 
