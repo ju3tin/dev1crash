@@ -55,7 +55,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
       }}
     >
       <h2>Admin Configuration Panel</h2>
-
+<br />
       {/* GAME & VAULT SETTINGS */}
       <fieldset style={{ padding: "10px" }}>
         <legend><strong>Crash Game / Vault Settings</strong></legend>
@@ -109,7 +109,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           {errors.VAULT_SYNC_INTERVAL && <span>Required</span>}
         </label>
       </fieldset>
-
+<br />
       {/* BLOCKCHAIN CONFIG */}
       <fieldset style={{ padding: "10px" }}>
         <legend><strong>Blockchain Config</strong></legend>
@@ -132,7 +132,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           {errors.tokenMint && <span>Required</span>}
         </label>
       </fieldset>
-
+<br />
       {/* DATABASE CONFIG */}
       <fieldset style={{ padding: "10px" }}>
         <legend><strong>Database</strong></legend>
