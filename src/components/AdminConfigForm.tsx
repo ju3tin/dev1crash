@@ -59,7 +59,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
       {/* GAME & VAULT SETTINGS */}
       <fieldset style={{ padding: "10px" }}>
         <legend><strong>Crash Game / Vault Settings</strong></legend>
-
+        <br />
         <label>
           Vault Display Multiplier
           <input
@@ -69,7 +69,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           />
           {errors.VAULT_DISPLAY_MULTIPLIER && <span>Required</span>}
         </label>
-
+        <br />
         <label>
           Max Payout % of Vault
           <input
@@ -79,7 +79,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           />
           {errors.MAX_PAYOUT_PERCENT_OF_VAULT && <span>Required</span>}
         </label>
-
+        <br />
         <label>
           Max Single Bet Ratio
           <input
@@ -89,7 +89,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           />
           {errors.MAX_SINGLE_BET_RATIO && <span>Required</span>}
         </label>
-
+        <br />
         <label>
           Absolute Max Crash
           <input
@@ -99,7 +99,7 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           />
           {errors.ABSOLUTE_MAX_CRASH && <span>Required</span>}
         </label>
-
+        <br />
         <label>
           Vault Sync Interval (ms)
           <input
@@ -108,10 +108,12 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           />
           {errors.VAULT_SYNC_INTERVAL && <span>Required</span>}
         </label>
+        <br />
       </fieldset>
 <br />
       {/* BLOCKCHAIN CONFIG */}
       <fieldset style={{ padding: "10px" }}>
+      <br />
         <legend><strong>Blockchain Config</strong></legend>
 
         <label>
@@ -119,29 +121,31 @@ const AdminConfigForm: React.FC<{ defaultValues?: AdminConfig }> = ({
           <input type="text" {...register("rpcUrl", { required: true })} />
           {errors.rpcUrl && <span>Required</span>}
         </label>
-
+        <br />
         <label>
           Vault Wallet (PublicKey)
           <input type="text" {...register("vaultWallet", { required: true })} />
           {errors.vaultWallet && <span>Required</span>}
         </label>
-
+        <br />
         <label>
           Token Mint (PublicKey)
           <input type="text" {...register("tokenMint", { required: true })} />
           {errors.tokenMint && <span>Required</span>}
         </label>
+        <br />
       </fieldset>
 <br />
       {/* DATABASE CONFIG */}
       <fieldset style={{ padding: "10px" }}>
         <legend><strong>Database</strong></legend>
-
+        <br />
         <label>
           MongoDB URI
           <input type="text" {...register("mongodbUri", { required: true })} />
           {errors.mongodbUri && <span>Required</span>}
         </label>
+        <br />
       </fieldset>
 
       <button type="submit">Save Configuration</button>
