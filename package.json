@@ -86,6 +86,7 @@
   },
   "devDependencies": {
     "@coral-xyz/anchor-cli": "^0.29.0",
+    "@types/bs58": "^4.0.4",
     "@types/d3": "^7.4.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
