@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { NavItem } from '@/types/nav';
 import Image from "next/image";
 import LoginButton from '@/components/login-buton';
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ import { NavItems } from '@/config';
 import { Menu } from 'lucide-react';
 
 export default function Header() {
+  const [isAdmin, setIsAdmin] = useState(false); // TODO: Replace with real admin logic
   const router = useRouter();
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ export default function Header() {
     // ✅ Action 2: navigate to another page
     router.push("/login2");
   };
-  const navItems = NavItems();
+  const navItems = NavItems(isAdmin);
   const [isOpen, setIsOpen] = useState(false);
   const handleWalletConnect = (address: string) => {
     console.log("Connected wallet address:", address);
