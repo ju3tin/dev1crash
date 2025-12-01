@@ -22,9 +22,9 @@ type SideNavProps = {
 const SideNav = ({
   ismounted
 }: SideNavProps) => {
- 
+  const [isAdmin, setIsAdmin] = useState(false); // TODO: Replace with real admin logic
 
-  const navItems = NavItems();
+  const navItems = NavItems(isAdmin);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
     if (typeof window !== 'undefined') {

@@ -24,7 +24,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 //import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function SideNav() {
-  const navItems = NavItems();
+  const [isAdmin, setIsAdmin] = useState(false); // TODO: Replace with real admin logic
+ 
+  const navItems = NavItems(isAdmin);
 
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(() => {
     if (typeof window !== 'undefined') {
