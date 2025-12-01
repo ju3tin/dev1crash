@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gradient-to-br from-purple-900 to-black text-white min-h-screen`}>
+      <body className={`${inter.className} bg-gradient-to-br from-black-900 to-black text-white min-h-screen`}>
         <WalletProvider>
           {children}
         </WalletProvider>
