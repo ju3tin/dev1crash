@@ -72,7 +72,7 @@ export const NavItems = () => {
       name: 'Admin',
       href: '/adminconfig',
       icon: <Image src="/images/admin2.svg" alt="Solana Logo" height={20} width={20} />,
-      active: isNavItemActive(pathname, '/leaderboard'),
+      active: isNavItemActive(pathname, '/adminconfig'),
       position: 'top',
     },
     {
