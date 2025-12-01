@@ -2,8 +2,13 @@
 export default function Roadmap() {
     return (
         <>
+<div className="video-wrapper">
+  <video autoPlay muted loop playsInline className="bg-video">
+    <source src="/images/container01.mp4" type="video/mp4" />
+  </video>
 <div id="container12" className="container default pt-4">
     <div className="wrapper1">
+    <img src="/images/image03.png" alt="Untitled" />
         <div className="inner">
       <h1 className='text-3xl font-semibold capitalize'>About</h1>
       <h2 id="text09" className="style4" style={{opacity: 1, transform: "none"}}>CHIPPY ON SOLANA IS THE FRIENDLY FISH AND CHIPS YOU ALWAYS NEEDED. IT IS THE BEST COMBO IN ALL THE SOL SEA. JOIN OUR COMMUNITY TO FIND OTHER FISHY FRIENDS!</h2>
@@ -44,6 +49,7 @@ export default function Roadmap() {
         </div>
     </div>
 </div>
+</div>
 <style jsx>{`
         .socialList {
           display: flex;
@@ -52,6 +58,19 @@ export default function Roadmap() {
           padding: 0;
           margin: 0;
         }
+          .video-wrapper {
+  position: relative;
+}
+
+.bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
 
         .socialList li {
           display: flex;
