@@ -1,5 +1,6 @@
 import { usePathname } from 'next/navigation';
 import Image from "next/image";
+import { NavItem } from '@/types/nav';
 
 import { Bell, Briefcase, Home, Settings, User,WalletCards, BookOpenCheck, Fish,
   Bookmark,
@@ -11,7 +12,7 @@ import { Bell, Briefcase, Home, Settings, User,WalletCards, BookOpenCheck, Fish,
   BadgeInfo,
   Info, } from 'lucide-react';
 
-export const NavItems = () => {
+export const NavItems = (isAdmin: boolean) => {
   const pathname = usePathname() || '';
 
   function isNavItemActive(pathname: string, nav: string) {
@@ -74,6 +75,7 @@ export const NavItems = () => {
       icon: <Image src="/images/admin2.svg" alt="Solana Logo" height={20} width={20} />,
       active: isNavItemActive(pathname, '/adminconfig'),
       position: 'top',
+      adminOnly: true, // <— tells system to hide unless admin
     },
     {
       name: 'Settings',
