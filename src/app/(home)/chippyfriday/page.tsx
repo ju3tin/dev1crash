@@ -25,7 +25,7 @@ export default function TweetPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start p-6">
+    <div style={{marginLeft: 'auto', marginRight: 'auto', width: '100%'}}>
       <h1 className="text-2xl font-bold mb-4 text-center">
         Get Your Free Chips When you buy Chippy Tokens <Link href="/tweet"> Click Here On Friday</Link>
       </h1>
