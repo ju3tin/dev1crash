@@ -9,9 +9,9 @@ export default function Roadmap() {
       <p>
       <ul>
       <li><a href="https://twitter.com/FishnChipsSOL" className="thumbnail n01"><span className="frame"><img src="/images/aa7bc757.png" alt="Untitled"/></span></a></li>
-      <li><a href="https://twitter.com/FishnChipsSOL" className="thumbnail n01"><span className="frame"><img src="/images/c7f40097.png" alt="Untitled"/></span></a></li>
-      <li><a href="https://twitter.com/FishnChipsSOL" className="thumbnail n01"><span className="frame"><img src="/images/43bb0dd1.png" alt="Untitled"/></span></a></li>
-      <li><a href="https://twitter.com/FishnChipsSOL" className="thumbnail n01"><span className="frame"><img src="/images/6cb17d91.png" alt="Untitled"/></span></a></li>
+      <li><a href="https://t.me/fishnchipssol" className="thumbnail n01"><span className="frame"><img src="/images/c7f40097.png" alt="Untitled"/></span></a></li>
+      <li><a href="https://solscan.io/token/Bz7Nx1F3Mti1BVS7ZAVDLSKGEaejufxvX2DPdjpf8PqT" className="thumbnail n01"><span className="frame"><img src="/images/43bb0dd1.png" alt="Untitled"/></span></a></li>
+      <li><a href="https://www.dextools.io/app/en/token/chippy?t=1764592782335" className="thumbnail n01"><span className="frame"><img src="/images/6cb17d91.png" alt="Untitled"/></span></a></li>
       <li><a href="https://twitter.com/FishnChipsSOL" className="thumbnail n01"><span className="frame"><img src="/images/61a9adf4.png" alt="Untitled"/></span></a></li>
       <li><a href="https://twitter.com/FishnChipsSOL" className="thumbnail n01"><span className="frame"><img src="/images/af144825.png" alt="Untitled"/></span></a></li>
       </ul>
