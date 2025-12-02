@@ -11,7 +11,7 @@ export default function Roadmap() {
     <img src="/images/image03.png" alt="Untitled" />
         <div className="inner">
       <h1 className='text-3xl font-semibold capitalize'>About</h1>
-      <h2 id="text09" className="style4" style={{opacity: 1, transform: "none"}}>CHIPPY ON SOLANA IS THE FRIENDLY FISH AND CHIPS YOU ALWAYS NEEDED. IT IS THE BEST COMBO IN ALL THE SOL SEA. JOIN OUR COMMUNITY TO FIND OTHER FISHY FRIENDS!</h2>
+      <h2 id="text09" className="dude" style={{opacity: 1, transform: "none"}}>CHIPPY ON SOLANA IS THE FRIENDLY FISH AND CHIPS YOU ALWAYS NEEDED. IT IS THE BEST COMBO IN ALL THE SOL SEA. JOIN OUR COMMUNITY TO FIND OTHER FISHY FRIENDS!</h2>
       <p>
       <ul className="socialList">
         <li>
@@ -75,6 +75,17 @@ export default function Roadmap() {
         .socialList li {
           display: flex;
         }
+          .dude{     
+    text-align: center;
+    color: #FFFFFF;
+    font-family: 'Bangers', cursive;
+    letter-spacing: 0.15rem;
+    width: calc(100% + 0.15rem);
+    font-size: 2.375em;
+    line-height: 0.875;
+    font-weight: 400;
+    text-shadow: 0.177rem 0.177rem 0.125rem #000000;
+          }
       `}</style>
       </>
 )}
