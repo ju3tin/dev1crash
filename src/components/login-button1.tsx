@@ -107,7 +107,7 @@ function WalletButtonWrapper() {
           'Content-Type': 'application/json',
         },
       });
-      console.log('this is going to work');
+      console.log('this is going to work'+walletAddress);
       const checkResult = await checkResponse.json();
       if (checkResult.isAdmin) {
         console.log('User is admin:', checkResult.user);
