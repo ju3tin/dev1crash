@@ -179,7 +179,7 @@ import {
   Wallet, Send, ArrowDown, ArrowUp, RefreshCw, CheckCircle
 } from 'lucide-react';
 
-const PROGRAM_ID = new PublicKey("C3aRucgPgxHHD5nrT4busuTTnVmF55gqJwAccQwr8Qi4");
+const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID3 || "");
 
 export default function GamePage() {
   const [overlayOpen, setOverlayOpen] = useState(false);

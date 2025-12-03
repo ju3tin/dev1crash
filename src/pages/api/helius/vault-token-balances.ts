@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'GET') return res.status(405).end();
 
   try {
-    const connection = new Connection('https://api.devnet.solana.com');
+    const connection = new Connection(process.env.RPC1);
 
     // Get vault address from config
     const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID);

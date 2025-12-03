@@ -1,8 +1,8 @@
 const { Connection, PublicKey, SystemProgram } = window.solanaWeb3;
 const { AnchorProvider, Program, web3 } = window.anchor;
 
-const PROGRAM_ID = new PublicKey("4JnQm2avRVzUsB2yji4NWER4QVYoQdJtQ4Zy7njMk9Zs");
-const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID2);
+const connection = new Connection(process.env.RPC1, "confirmed");
 let provider, program, wallet;
 
 async function connectWallet() {

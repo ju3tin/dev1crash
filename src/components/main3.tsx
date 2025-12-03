@@ -17,7 +17,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Constants
-const SOLANA_RPC_URL = 'https://api.devnet.solana.com';
+const SOLANA_RPC_URL = process.env.RPC1;
 const TOKEN_PROGRAM_ID = new PublicKey('HjrH39SYEHmko6pXKtQGm6eSsY6xKRnbUitAYQsFWTMe');
 const idl = {
   "version": "0.1.0",

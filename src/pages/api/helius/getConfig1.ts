@@ -31,7 +31,7 @@ export default async function handler(
   if (req.method !== 'GET') return res.status(405).end();
 
   try {
-    const connection = new Connection('https://api.devnet.solana.com');
+    const connection = new Connection(process.env.RPC1);
 
     const [configPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('config')],
