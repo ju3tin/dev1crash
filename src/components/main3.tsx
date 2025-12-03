@@ -149,7 +149,7 @@ export default function Home() {
   const [mintPubkey, setMintPubkey] = useState<PublicKey | null>(null);
 
   useEffect(() => {
-    const conn = new Connection(SOLANA_RPC_URL, 'confirmed');
+    const conn = new Connection(SOLANA_RPC_URL ?? '', 'confirmed');
     setConnection(conn);
   }, []);
 
