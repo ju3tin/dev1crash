@@ -101,7 +101,7 @@ function WalletButtonWrapper() {
 
   const checkifadmin = async (walletAddress: string) => {
     try {
-      const checkResponse = await fetch('/api/users/check-admin', {
+      const checkResponse = await fetch('/api/helius/checkAdmin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -182,6 +182,7 @@ function WalletButtonWrapper() {
       
       // Check if user exists and create if needed
       checkAndCreateUser(address);
+      checkifadmin(address);
     } else {
       setWalletAddress(null); // Clear the address when disconnected
     }
