@@ -99,25 +99,40 @@ function WalletButtonWrapper() {
     }
   };
 
-  const checkifadmin = async (walletAddress: string) => {
+  const checkIfAdmin = async (walletAddress: string) => {
     try {
-      const checkResponse = await fetch('/api/helius/checkAdmin', {
-        method: 'POST',
+      const checkResponse = await fetch('/api/helius/getConfiga', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      console.log('this is going to work'+walletAddress);
+  
       const checkResult = await checkResponse.json();
-      if (checkResult.isAdmin) {
-        console.log('User is admin:', checkResult.user);
-      } else {
-        console.log('User is not admin:', checkResult.user);
+  
+      console.log('Checking admin for wallet:', walletAddress);
+  
+      if (!checkResult.success || !checkResult.config || !checkResult.config.admin) {
+        console.error('Invalid config response:', checkResult);
+        return;
       }
+  
+      const adminAddress = checkResult.config.admin;
+  
+      if (walletAddress === adminAddress) {
+        console.log('User is admin:', walletAddress);
+        return { isAdmin: true, admin: adminAddress };
+      } else {
+        console.log('User is NOT admin. Admin is:', adminAddress);
+        return { isAdmin: false, admin: adminAddress };
+      }
+  
     } catch (error) {
       console.error('Error checking if user is admin:', error);
+      return { isAdmin: false, error };
     }
   };
+  
 
   // Fallback function to create user via API
   const createUserViaAPI = async (walletAddress: string) => {
@@ -156,7 +171,7 @@ function WalletButtonWrapper() {
       const address = publicKey.toBase58();
       console.log("Connected wallet address:", address);
       setWalletAddress(address); // Store the address in Zustand
-      checkifadmin(address);
+      checkIfAdmin(address);
       // Send CREATE_USER message for any connected wallet
       const createUserMessage = {
         type: "CREATE_USER",
