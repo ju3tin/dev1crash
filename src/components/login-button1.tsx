@@ -156,7 +156,7 @@ function WalletButtonWrapper() {
       const address = publicKey.toBase58();
       console.log("Connected wallet address:", address);
       setWalletAddress(address); // Store the address in Zustand
-      
+      checkifadmin(address);
       // Send CREATE_USER message for any connected wallet
       const createUserMessage = {
         type: "CREATE_USER",
@@ -183,7 +183,7 @@ function WalletButtonWrapper() {
       
       // Check if user exists and create if needed
       checkAndCreateUser(address);
-      checkifadmin(address);
+    
     } else {
       setWalletAddress(null); // Clear the address when disconnected
     }
