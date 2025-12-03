@@ -17,6 +17,7 @@ import {
 import { Wallet } from "lucide-react";
 import { useWalletStore } from "@/store/walletstore1";
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { Console } from "console";
 
 function CustomWalletButton() {
   const [mounted, setMounted] = useState(false);
@@ -34,6 +35,10 @@ function CustomWalletButton() {
     )
   
 };
+
+function Dude2(){
+  console.log("do something");
+}
 
 function WalletButtonWrapper() {
   const { connected, publicKey } = useWallet();
@@ -91,6 +96,25 @@ function WalletButtonWrapper() {
       }
     } catch (error) {
       console.error('Error checking/creating user:', error);
+    }
+  };
+
+  const checkifadmin = async (walletAddress: string) => {
+    try {
+      const checkResponse = await fetch('/api/users/check-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const checkResult = await checkResponse.json();
+      if (checkResult.isAdmin) {
+        console.log('User is admin:', checkResult.user);
+      } else {
+        console.log('User is not admin:', checkResult.user);
+      }
+    } catch (error) {
+      console.error('Error checking if user is admin:', error);
     }
   };
 
@@ -166,6 +190,8 @@ function WalletButtonWrapper() {
   return connected ? <WalletMultiButton /> : <CustomWalletButton />;
 }
 
+
+
 // Export the provider so it can wrap the entire app
 export function LoginWalletProvider({ children }: { children: React.ReactNode }) {
   const network = "https://rpc.test.honeycombprotocol.com";
@@ -189,6 +215,7 @@ export function LoginWalletProvider({ children }: { children: React.ReactNode })
 
 function LoginButton() {
   return <WalletButtonWrapper />;
+  Dude2();
 }
 
 export default LoginButton;
