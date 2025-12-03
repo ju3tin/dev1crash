@@ -11,7 +11,7 @@ export default async function handler(
   if (req.method !== 'GET') return res.status(405).end();
 
   try {
-    const connection = new Connection(process.env.RPC1);
+    const connection = new Connection(process.env.RPC1 ?? '');
 
     // Derive config PDA to get the vault address from on-chain data
     const [configPda] = PublicKey.findProgramAddressSync(
