@@ -24,7 +24,7 @@ export const useSolana = () => {
 
     const connection = new Connection('https://api.mainnet-beta.solana.com');
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-      programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+      programId: new PublicKey(process.env.TOKEN_PROGRAM_ID5 ?? '')
     });
 
     const ownsToken = tokenAccounts.value.some((account) => {

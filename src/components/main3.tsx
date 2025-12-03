@@ -198,7 +198,7 @@ export default function Home() {
         .accounts({
           signer: publicKey,
           mint: mintPubkey,
-          tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+          tokenProgram: new PublicKey(process.env.TOKEN_PROGRAM_ID5 ?? ''),
           systemProgram: SystemProgram.programId,
         })
         .transaction();
@@ -247,7 +247,7 @@ export default function Home() {
         .accounts({
           signer: publicKey,
           mint: customMintPda,
-          tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+          tokenProgram: new PublicKey(process.env.TOKEN_PROGRAM_ID5 ?? ''),
           systemProgram: SystemProgram.programId,
         })
         .transaction();
@@ -309,7 +309,7 @@ export default function Home() {
           mint: mintPubkey,
           tokenAccount: associatedTokenAccount,
           recipient: recipientPubkey,
-          tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+          tokenProgram: new PublicKey(process.env.TOKEN_PROGRAM_ID5 ?? ''),
           associatedTokenProgram: new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
           systemProgram: SystemProgram.programId,
         })

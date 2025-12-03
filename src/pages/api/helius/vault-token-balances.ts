@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Fetch ALL token accounts owned by the vault
     const tokenAccounts = await connection.getTokenAccountsByOwner(vaultPubkey, {
-      programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKLMAf9o1QebM9o7z5n1W8"), // SPL Token program
+      programId: new PublicKey(process.env.TOKEN_PROGRAM_ID4 ?? ''), // SPL Token program
     });
 
     const balances = tokenAccounts.value.map((acc) => {
