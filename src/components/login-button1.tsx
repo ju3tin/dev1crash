@@ -231,9 +231,14 @@ export function LoginWalletProvider({ children }: { children: React.ReactNode })
 }
 
 function LoginButton() {
+
+  useEffect(() => {
+   Dude2();
+  }, []);
   return <WalletButtonWrapper />;
-  Dude2();
+ 
 }
+
 
 export default LoginButton;
  
