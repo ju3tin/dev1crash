@@ -24,7 +24,7 @@ const WithdrawForm = () => {
 
   // Set up Solana connection and Anchor provider
   const connection = useMemo(
-    () => new Connection(process.env.RPC1, 'confirmed'), // Use mainnet-beta for production
+    () => new Connection(process.env.RPC1 ?? '', 'confirmed'), // Use mainnet-beta for production
     []
   );
   const provider = useMemo(() => {
