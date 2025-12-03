@@ -9,7 +9,7 @@ export default function BuyChippy() {
   const [status, setStatus] = useState<string>("");
 
   const solMint = "So11111111111111111111111111111111111111112";
-  const chippyMint = "Bz7Nx1F3Mti1BVS7ZAVDLSKGEaejufxvX2DPdjpf8PqT";
+  const chippyMint = process.env.PROGRAM_ID6 ?? '';
   const jupiterQuoteApi = "https://quote-api.jup.ag/v6/quote";
   const jupiterSwapApi = "https://quote-api.jup.ag/v6/swap";
   const slippageBps = 50; // 0.5% slippage

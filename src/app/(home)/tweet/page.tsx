@@ -18,7 +18,7 @@ const tweet = tweetUrl;
   // Helius config
   const API_URL = "https://mainnet.helius-rpc.com";
   const API_KEY = "4859defa-46ae-4d87-abe4-1355598c6d76";
-  const TOKEN_MINT = "Bz7Nx1F3Mti1BVS7ZAVDLSKGEaejufxvX2DPdjpf8PqT";
+  const TOKEN_MINT = process.env.PROGRAM_ID6 ?? '';
 
   useEffect(() => {
     const fetchBalance = async () => {

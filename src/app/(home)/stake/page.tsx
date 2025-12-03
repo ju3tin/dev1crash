@@ -136,7 +136,7 @@ const getIDL = (): StakingProgramIDL => {
 }
 
 // Your actual program ID
-const programId = new PublicKey("Bz7Nx1F3Mti1BVS7ZAVDLSKGEaejufxvX2DPdjpf8PqT")
+const programId = new PublicKey(process.env.PROGRAM_ID6 ?? '')
 
 // Type the program properly
 type StakingProgram = Program<StakingProgramIDL>
