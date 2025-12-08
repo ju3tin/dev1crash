@@ -9,7 +9,7 @@ export default function AdminConfigPage() {
 
   const { connected, publicKey } = useWallet();
   const [isAdmin, setIsAdmin] = useState(false);
-  const router = useRouter();
+  //const router = useRouter();
 
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function AdminConfigPage() {
           setIsAdmin(isWalletAdmin);
         } else {
           setIsAdmin(false);
-          router.push('/');  // Redirect to login if not logged in
+      //    router.push('/');  // Redirect to login if not logged in
           return null;  // Don't render the page until the redirect happens
         }
       } catch (error) {
