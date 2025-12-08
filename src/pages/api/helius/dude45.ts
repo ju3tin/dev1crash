@@ -8,7 +8,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json({
       success: true,
       config: {
-            admin: "AgDCRcYy1p3SG3NpBgL6HKN2xdQrQgSsyW5zcNsj7rbF",
+            admin: "14RxG3uBSHkzpiEE3muBMxg2dEQXw2rSvzJvJatWuQ2r",
         vault: "9yRoPLZD4f3RkUrHqQvTspeYR2hXukGVCJZFhTwBox83",
       },
       configPda: "g34CWF432qdBWKPczuko7nokJAcCTiT3hcG3zX49yaY",
