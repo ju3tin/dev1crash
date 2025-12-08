@@ -3,7 +3,7 @@ import AdminConfigForm from "@/components/AdminConfigForm";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Fragment, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-
+import { redirect } from 'next/navigation'
 
 
 export default function AdminConfigPage() {
@@ -31,8 +31,8 @@ export default function AdminConfigPage() {
           setIsAdmin(isWalletAdmin);
         } else {
           setIsAdmin(false);
-      //    router.push('/');  // Redirect to login if not logged in
-          return null;  // Don't render the page until the redirect happens
+          redirect('/');
+          return null;
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
