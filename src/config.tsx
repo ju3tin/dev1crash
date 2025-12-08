@@ -1,8 +1,7 @@
 import { usePathname } from 'next/navigation';
 import Image from "next/image";
 import { NavItem } from '@/types/nav';
-
-import { Bell, Briefcase, Home, Settings, User,WalletCards, BookOpenCheck, Fish,
+import { Bell, Briefcase, Home, Settings, User, WalletCards, BookOpenCheck, Fish,
   Bookmark,
   List,
   Mail,
@@ -19,7 +18,7 @@ export const NavItems = (isAdmin: boolean) => {
     return pathname.includes(nav);
   }
 
-  return [
+  const navItems: NavItem[] = [
     {
       name: 'Home',
       href: '/',
@@ -58,7 +57,7 @@ export const NavItems = (isAdmin: boolean) => {
     {
       name: 'Solana Information',
       href: '/solana',
-      icon: <Image src="/images/solanalogo.svg" alt="Solana Logo" height={20} width={20} />, // Adjust the path and size as needed
+      icon: <Image src="/images/solanalogo.svg" alt="Solana Logo" height={20} width={20} />,
       active: isNavItemActive(pathname, '/solana'),
       position: 'top',
     },
@@ -69,20 +68,27 @@ export const NavItems = (isAdmin: boolean) => {
       active: isNavItemActive(pathname, '/leaderboard'),
       position: 'top',
     },
-    {
+  ];
+
+  // Conditionally add Admin menu item if isAdmin is true
+  if (isAdmin) {
+    navItems.push({
       name: 'Admin',
       href: '/adminconfig',
-      icon: <Image src="/images/admin2.svg" alt="Solana Logo" height={20} width={20} />,
+      icon: <Image src="/images/admin2.svg" alt="Admin" height={20} width={20} />,
       active: isNavItemActive(pathname, '/adminconfig'),
       position: 'top',
-      adminOnly: true, // <— tells system to hide unless admin
-    },
-    {
-      name: 'Settings',
-      href: '/settings',
-      icon: <Settings size={20} />,
-      active: isNavItemActive(pathname, '/settings'),
-      position: 'bottom',
-    },
-  ];
+      adminOnly: true,
+    });
+  }
+
+  navItems.push({
+    name: 'Settings',
+    href: '/settings',
+    icon: <Settings size={20} />,
+    active: isNavItemActive(pathname, '/settings'),
+    position: 'bottom',
+  });
+
+  return navItems;
 };
