@@ -62,7 +62,7 @@ export const NavItems = (isAdmin: boolean) => {
       position: 'top',
     },
     {
-      name: 'Leaderboards',
+      name: 'Leaderboard',
       href: '/leaderboard',
       icon: <Image src="/images/leaderboard.svg" alt="Solana Logo" height={20} width={20} />,
       active: isNavItemActive(pathname, '/leaderboard'),
