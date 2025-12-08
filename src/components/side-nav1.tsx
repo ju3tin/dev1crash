@@ -12,6 +12,7 @@ import {
 import { NavItems } from '@/config';
 import { cn } from '@/lib/utils2';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 //import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -22,7 +23,36 @@ type SideNavProps = {
 const SideNav = ({
   ismounted
 }: SideNavProps) => {
-  const [isAdmin, setIsAdmin] = useState(true); // TODO: Replace with real admin logic
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { connected, publicKey } = useWallet();
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!connected || !publicKey) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const walletAddress = publicKey.toBase58();
+        const response = await fetch(`/api/helius/dude45?wallet=${walletAddress}`);
+        const data = await response.json();
+
+        if (data.success && data.config && data.config.admin) {
+          // Check if wallet matches admin address
+          const isWalletAdmin = walletAddress === data.config.admin;
+          setIsAdmin(isWalletAdmin);
+        } else {
+          setIsAdmin(false);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [connected, publicKey]);
 
   const navItems = NavItems(isAdmin);
 
