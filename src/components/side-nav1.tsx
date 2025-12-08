@@ -22,7 +22,7 @@ type SideNavProps = {
 const SideNav = ({
   ismounted
 }: SideNavProps) => {
-  const [isAdmin, setIsAdmin] = useState(false); // TODO: Replace with real admin logic
+  const [isAdmin, setIsAdmin] = useState(true); // TODO: Replace with real admin logic
 
   const navItems = NavItems(isAdmin);
 
