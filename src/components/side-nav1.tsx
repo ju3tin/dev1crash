@@ -35,7 +35,7 @@ const SideNav = ({
 
       try {
         const walletAddress = publicKey.toBase58();
-        const response = await fetch(`/api/helius/dude45?wallet=${walletAddress}`);
+        const response = await fetch(`/api/helius/dude451?wallet=${walletAddress}`);
         const data = await response.json();
 
         if (data.success && data.config && data.config.admin) {
