@@ -35,6 +35,9 @@ type Tweet = {
             </div>
           ))
         )}
+          {tweets.map((tweet) => (
+          <TwitterEmbed key={tweet._id} tweetUrl={tweet.tweet} />
+        ))}
       </div>
     );
   };
