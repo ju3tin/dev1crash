@@ -2,15 +2,14 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AdminOnly from '@/components/AdminOnly';
-import { useWallet } from '@solana/wallet-adapter-react';
 
 
 
 export default async function AdminDashboard() {
-    const { connected, publicKey } = useWallet();
-  // Read the connected wallet address from a cookie set at login/connect time.
-  // If it is missing, push users to connect first.
-  const wallet =  publicKey?.toBase58();
+  // If we have stored the connected wallet in a cookie, use it; otherwise send
+  // the user to connect first. This keeps the page server-only (no client hooks).
+  const wallet =
+    cookies().get('wallet')?.value || cookies().get('walletAddress')?.value;
   if (!wallet) {
     redirect('/connect');
   }
