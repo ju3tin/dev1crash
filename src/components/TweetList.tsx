@@ -27,7 +27,7 @@ type Tweet = {
               <p>
                 <strong>Tweet:</strong>{" "}
                 <a href={tweet.tweet} target="_blank" rel="noopener noreferrer">
-                  <TwitterEmbed tweetUrl={tweet.tweet} />
+                <TwitterEmbed key={tweet._id} tweetUrl={tweet.tweet} />
                 </a>
               </p>
               <p><strong>Date:</strong> {new Date(tweet.date).toLocaleString()}</p>
