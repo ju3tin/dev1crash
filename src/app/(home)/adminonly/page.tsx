@@ -1,9 +1,15 @@
 // app/admin/dashboard/page.tsx
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import AdminOnly from '@/components/AdminOnly';
-//import { getWallet } from '@/lib/wallet'; // your way of getting the wallet (server or client)
 
 export default async function AdminDashboard() {
-  const wallet = '14RxG3uBSHkzpiEE3muBMxg2dEQXw2rSvzJvJatWuQ2r'; // ← your logic: session, cookie, middleware, etc.
+  // Read the connected wallet address from a cookie set at login/connect time.
+  // If it is missing, push users to connect first.
+  const wallet = cookies().get('walletAddress')?.value;
+  if (!wallet) {
+    redirect('/connect');
+  }
 
   return (
     <AdminOnly walletAddress={wallet} redirectTo="/connect">
