@@ -1,51 +1,63 @@
 'use client';
+
 import AdminConfigForm from "@/components/AdminConfigForm";
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Fragment, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { redirect } from 'next/navigation'
-
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation'; // ← Correct import for App Router
 
 export default function AdminConfigPage() {
-
   const { connected, publicKey } = useWallet();
-  const [isAdmin, setIsAdmin] = useState(false);
-  //const router = useRouter();
-
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true); // Show loading while checking
 
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!connected || !publicKey) {
-        setIsAdmin(false);
+        router.replace('/'); // ← Redirect if not connected
         return;
       }
 
       try {
         const walletAddress = publicKey.toBase58();
         const response = await fetch(`/api/helius/dude451?wallet=${walletAddress}`);
+
+        if (!response.ok) {
+          router.replace('/');
+          return;
+        }
+
         const data = await response.json();
 
-        if (data.success && data.config && data.config.admin) {
-          // Check if wallet matches admin address
-          const isWalletAdmin = walletAddress === data.config.admin;
-          setIsAdmin(isWalletAdmin);
+        // Check if the connected wallet matches the admin address
+        const isWalletAdmin = data.success && data.config?.admin === walletAddress;
+
+        if (!isWalletAdmin) {
+          router.replace('/'); // ← This actually redirects
         } else {
-          setIsAdmin(false);
-          redirect('/');
-          return null;
+          setIsLoading(false); // Only render page if admin
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
-        setIsAdmin(false);
+        router.replace('/');
       }
     };
 
     checkAdminStatus();
-  }, [connected, publicKey]);
+  }, [connected, publicKey, router]);
 
+  // Show loading spinner while checking
+  if (isLoading) {
+    return (
+      <div style={{ padding: "30px", textAlign: "center" }}>
+        <p>Checking admin access...</p>
+      </div>
+    );
+  }
 
+  // Only render the admin form if user is confirmed admin
   return (
     <div style={{ padding: "30px" }}>
+      <h1>Admin Config</h1>
       <AdminConfigForm />
     </div>
   );
