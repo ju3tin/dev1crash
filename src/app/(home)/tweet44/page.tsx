@@ -1,5 +1,5 @@
 // app/(home)/anotherPage.tsx
-
+"use client";
 import TweetList from '@/components/TweetList'; // Adjust the import path
 import { useEffect, useState } from 'react';
 
