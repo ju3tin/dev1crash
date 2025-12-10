@@ -1,5 +1,5 @@
 // app/tweets/page.tsx   (or any page you want)
-
+"use client";
 import { Tweet } from 'react-tweet'; // Best & lightest way in 2025
 
 // Optional fallback if you don't want to install react-tweet
