@@ -1,6 +1,5 @@
 // app/tweets/page.tsx   (or any page you want)
-"use client";
-import { Tweet } from 'react-tweet'; // Best & lightest way in 2025
+import { TweetEmbed } from '@/components/TweetEmbed';
 
 // Optional fallback if you don't want to install react-tweet
 // We'll provide both versions below
@@ -13,7 +12,9 @@ type TweetData = {
 };
 
 async function getTweets(): Promise<TweetData[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/tweets`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/tweets`, {
+    cache: 'no-store', // Ensure fresh data on each request
+  });
 
   
   
@@ -58,9 +59,7 @@ export default async function TweetsPage() {
                 {tweetId ? (
                   <>
                     {/* Beautiful embedded tweet */}
-                    <div className="not-prose">
-                      <Tweet id={tweetId} />
-                    </div>
+                    <TweetEmbed id={tweetId} />
 
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between text-sm text-gray-600 dark:text-gray-400">
                       <span>Wallet: {item.walletAddress.slice(0, 6)}...{item.walletAddress.slice(-4)}</span>
