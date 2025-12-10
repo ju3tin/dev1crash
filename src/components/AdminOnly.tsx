@@ -18,12 +18,20 @@ export default async function AdminOnly({
     redirect(redirectTo);
   }
 
-  // Call your exact API
+  // Get the base URL for the API call
+  const headersList = headers();
+  const host = headersList.get('host');
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
+  const baseUrl = `${protocol}://${host}`;
+
+  // Call your exact API with absolute URL
   const res = await fetch(
-    `/api/helius/dude451?wallet=${walletAddress}`,
+    `${baseUrl}/api/helius/dude451?wallet=${walletAddress}`,
     {
       method: 'GET',
-      headers: headers(), // forwards cookies if needed
+      headers: {
+        cookie: headersList.get('cookie') || '',
+      },
       cache: 'no-store',
     }
   );

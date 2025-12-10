@@ -1,5 +1,4 @@
 // app/admin/dashboard/page.tsx
-'use client';
 import AdminOnly from '@/components/AdminOnly';
 //import { getWallet } from '@/lib/wallet'; // your way of getting the wallet (server or client)
 
