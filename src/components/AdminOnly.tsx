@@ -1,7 +1,7 @@
 // components/AdminOnly.tsx
-"use client";
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import type React from 'react';
 
 type AdminOnlyProps = {
   children: React.ReactNode;
