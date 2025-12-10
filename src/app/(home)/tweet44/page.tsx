@@ -18,7 +18,7 @@ async function getTweets(): Promise<TweetData[]> {
   
   
 
-  const data = await res.json();
+ // const data = await res.json();
 
   if (!res.ok) {
     console.error('Failed to fetch tweets');
