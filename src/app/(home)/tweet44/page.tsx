@@ -1,5 +1,5 @@
 // pages/tweets.tsx
-
+"use client";
 import React from 'react';
 
 // Define a TypeScript type for the tweet object
