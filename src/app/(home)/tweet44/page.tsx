@@ -1,85 +1,55 @@
-// app/tweets/page.tsx   (or any page you want)
-import { TweetEmbed } from '@/components/TweetEmbed';
+// pages/tweets.tsx
 
-// Optional fallback if you don't want to install react-tweet
-// We'll provide both versions below
+import React from 'react';
 
-type TweetData = {
+// Define a TypeScript type for the tweet object
+type Tweet = {
   _id: string;
   walletAddress: string;
   tweet: string;
   date: string;
+  __v: number;
 };
 
-async function getTweets(): Promise<TweetData[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/tweets`, {
-    cache: 'no-store', // Ensure fresh data on each request
-  });
+// Component to display each tweet
+const TweetComponent: React.FC<{ tweet: Tweet }> = ({ tweet }) => {
+  return (
+    <div className="tweet">
+      <p><strong>Wallet Address:</strong> {tweet.walletAddress}</p>
+      <p><strong>Tweet:</strong> <a href={tweet.tweet} target="_blank" rel="noopener noreferrer">{tweet.tweet}</a></p>
+      <p><strong>Date:</strong> {new Date(tweet.date).toLocaleString()}</p>
+      <hr />
+    </div>
+  );
+};
 
-  
-  
+// Fetch tweets from API using getServerSideProps
+export async function getServerSideProps() {
+  const res = await fetch('/api/tweets'); // Replace with your actual API URL
+  const data: Tweet[] = await res.json(); // Explicitly type the response as an array of tweets
 
- // const data = await res.json();
-
-  if (!res.ok) {
-    console.error('Failed to fetch tweets');
-    return [];
-  }
-
-  return res.json();
+  return {
+    props: {
+      tweets: data,
+    },
+  };
 }
 
-export default async function TweetsPage() {
-  const tweets = await getTweets();
+type TweetsPageProps = {
+  tweets: Tweet[]; // Type the props to accept an array of tweets
+};
 
-  // Extract tweet ID from URL like:
-  // https://x.com/ju3ting/status/1966027070833902034
-  // → "1966027070833902034"
-  const extractTweetId = (url: string): string | null => {
-    const match = url.match(/status\/(\d+)/);
-    return match ? match[1] : null;
-  };
-
+const TweetsPage: React.FC<TweetsPageProps> = ({ tweets }) => {
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8 text-center">Community Tweets</h1>
-
+    <div>
+      <h1>Tweets</h1>
       {tweets.length === 0 ? (
-        <p className="text-center text-gray-500">No tweets yet...</p>
+        <p>No tweets available.</p>
       ) : (
-        <div className="space-y-8">
-          {tweets.map((item) => {
-            const tweetId = extractTweetId(item.tweet);
-
-            return (
-              <div
-                key={item._id}
-                className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6"
-              >
-                {tweetId ? (
-                  <>
-                    {/* Beautiful embedded tweet */}
-                    <TweetEmbed id={tweetId} />
-
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                      <span>Wallet: {item.walletAddress.slice(0, 6)}...{item.walletAddress.slice(-4)}</span>
-                      <span>{new Date(item.date).toLocaleDateString()}</span>
-                    </div>
-                  </>
-                ) : (
-                  // Fallback if URL is not valid
-                  <div className="text-red-500 text-sm">
-                    Invalid tweet link: {item.tweet}
-                    <div className="text-gray-500 mt-2">
-                      Wallet: {item.walletAddress} • {new Date(item.date).toLocaleDateString()}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        tweets.map((tweet) => <TweetComponent key={tweet._id} tweet={tweet} />)
       )}
     </div>
   );
-}
+};
+
+export default TweetsPage;
