@@ -1,5 +1,8 @@
 // components/TweetList.tsx
+
 "use client";
+import TwitterEmbed from '@/components/TwitterEmbed';
+import { Tweet as TweetType } from 'react-tweet';
 type Tweet = {
     _id: string;
     walletAddress: string;
@@ -24,7 +27,7 @@ type Tweet = {
               <p>
                 <strong>Tweet:</strong>{" "}
                 <a href={tweet.tweet} target="_blank" rel="noopener noreferrer">
-                  {tweet.tweet}
+                  <TwitterEmbed tweetUrl={tweet.tweet} />
                 </a>
               </p>
               <p><strong>Date:</strong> {new Date(tweet.date).toLocaleString()}</p>
