@@ -1,5 +1,5 @@
 // components/TweetList.tsx
-
+"use client";
 type Tweet = {
     _id: string;
     walletAddress: string;
